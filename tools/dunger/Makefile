@@ -1,15 +1,10 @@
 src = $(wildcard src/*.c)
 obj = $(src:.c=.o)
 dep = $(src:.c=.d)
-bin = lugburz
+bin = dunger
 
-#opt = -O3
-dbg = -g
-warn = -pedantic -Wall
-def = -DMINIGLUT_USE_LIBC
-
-CFLAGS = $(warn) $(opt) $(dbg) $(def) $(inc) -fcommon -MMD
-LDFLAGS = -lGL -lX11 -lm
+CFLAGS = -pedantic -Wall -g
+LDFLAGS = -lGL -lGLU -lglut -lutk -ldrawtext
 
 $(bin): $(obj)
 	$(CC) -o $@ $(obj) $(LDFLAGS)

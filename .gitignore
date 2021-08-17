@@ -2,3 +2,5 @@
 *.d
 *.swp
 lugburz
+tools/dunger/dunger
+*.ttf
