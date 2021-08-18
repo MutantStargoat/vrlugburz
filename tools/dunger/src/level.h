@@ -18,6 +18,7 @@ struct level {
 	struct cell *cells;
 };
 
+
 struct level *create_level(int xsz, int ysz);
 void free_level(struct level *lvl);
 

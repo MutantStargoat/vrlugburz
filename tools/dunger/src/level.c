@@ -5,6 +5,8 @@
 #include "level.h"
 
 extern int view_width, view_height;
+extern float view_panx, view_pany, view_zoom;
+
 
 struct level *create_level(int xsz, int ysz)
 {
@@ -29,15 +31,35 @@ void free_level(struct level *lvl)
 	free(lvl);
 }
 
-static void draw_cell(float x, float y, float sz, struct cell *cell)
+#define LTHICK	0.5f
+static void draw_cell(struct level *lvl, struct cell *cell)
 {
+	int cidx, row, col;
+	float x, y, xsz, ysz, sz;
 	static const float colors[][3] = {{0, 0, 0}, {0.6, 0.6, 0.6}, {0.4, 0.2, 0.1}};
 
-	if(cell) {
-		glColor3fv(colors[cell->type]);
-	} else {
-		glColor3f(1, 1, 1);
-	}
+	xsz = view_zoom * view_width / lvl->width;
+	ysz = view_zoom * view_height / lvl->height;
+	sz = xsz > ysz ? ysz : xsz;
+
+	cidx = cell - lvl->cells;
+	row = cidx / lvl->width;
+	col = cidx % lvl->width;
+
+	x = col * sz - view_panx;
+	y = row * sz - view_pany;
+
+	glColor3f(1, 1, 1);
+	glVertex2f(x, y);
+	glVertex2f(x + sz, y);
+	glVertex2f(x + sz, y + sz);
+	glVertex2f(x, y + sz);
+
+	x += LTHICK;
+	y += LTHICK;
+	sz -= LTHICK * 2.0f;
+
+	glColor3fv(colors[cell->type]);
 	glVertex2f(x, y);
 	glVertex2f(x + sz, y);
 	glVertex2f(x + sz, y + sz);
@@ -47,37 +69,14 @@ static void draw_cell(float x, float y, float sz, struct cell *cell)
 void draw_level(struct level *lvl)
 {
 	int i, j;
-	float x, y, dx, dy, cellsz;
 	struct cell *cell;
-
-	dx = view_width / lvl->width;
-	dy = view_height / lvl->height;
-	cellsz = dx > dy ? dy : dx;
 
 	glBegin(GL_QUADS);
 	cell = lvl->cells;
-	y = 0;
 	for(i=0; i<lvl->height; i++) {
-		x = 0;
 		for(j=0; j<lvl->width; j++) {
-			draw_cell(x, y, cellsz, cell++);
-			x += cellsz;
+			draw_cell(lvl, cell++);
 		}
-		y += cellsz;
 	}
 	glEnd();
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glBegin(GL_QUADS);
-	y = 0;
-	for(i=0; i<lvl->height; i++) {
-		x = 0;
-		for(j=0; j<lvl->width; j++) {
-			draw_cell(x, y, cellsz, 0);
-			x += cellsz;
-		}
-		y += cellsz;
-	}
-	glEnd();
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }

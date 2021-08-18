@@ -25,9 +25,14 @@ static int utextwidth(const char *txt, int sz);
 
 int win_width, win_height;
 int view_width, view_height;
+float view_panx, view_pany, view_zoom = 1.0f;
+
+static int bnstate[8];
+static int mousex, mousey, clickx, clicky;
 
 static float uiscale = 1.0f;
 #define UISPLIT	150
+static int splitx;
 
 #define FONTSZ	16
 static struct dtx_font *uifont;
@@ -101,6 +106,10 @@ static int init(void)
 		return -1;
 	}
 
+	splitx = UISPLIT * uiscale;
+	view_width = win_width - splitx;
+	view_height = win_height;
+
 	return 0;
 }
 
@@ -113,11 +122,6 @@ static void cleanup(void)
 
 static void display(void)
 {
-	int splitx = UISPLIT * uiscale;
-
-	view_width = win_width - splitx;
-	view_height = win_height;
-
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -187,12 +191,42 @@ static void mouse(int bn, int st, int x, int y)
 	int bidx = bn - GLUT_LEFT_BUTTON;
 	int press = st == GLUT_DOWN;
 
+	bnstate[bidx] = press;
+	mousex = x;
+	mousey = y;
+
+	if(bn <= 2) {
+		if(press) {
+			clickx = x;
+			clicky = y;
+		} else {
+			clickx = clicky = -1;
+		}
+	} else if(bn == 3) {
+		if(press) view_zoom += 0.1;
+	} else if(bn == 4) {
+		if(press) view_zoom -= 0.1;
+	}
+
 	utk_mbutton_event(bidx, press, x / uiscale, y / uiscale);
 	glutPostRedisplay();
 }
 
 static void motion(int x, int y)
 {
+	int dx, dy;
+	dx = x - mousex;
+	dy = y - mousey;
+	mousex = x;
+	mousey = y;
+
+	if(clickx >= splitx) {
+		if(bnstate[1]) {
+			view_panx -= dx;
+			view_pany += dy;
+		}
+	}
+
 	utk_mmotion_event(x / uiscale, y / uiscale);
 	glutPostRedisplay();
 }
