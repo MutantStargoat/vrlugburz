@@ -28,11 +28,11 @@ int view_width, view_height;
 float view_panx, view_pany, view_zoom = 1.0f;
 
 static int bnstate[8];
-static int mousex, mousey, clickx, clicky;
+int mousex, mousey, clickx, clicky;
 
 static float uiscale = 1.0f;
 #define UISPLIT	150
-static int splitx;
+int splitx;
 
 #define FONTSZ	16
 static struct dtx_font *uifont;
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitWindowSize(1280, 800);
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_MULTISAMPLE);
 	glutCreateWindow("dunger");
 
 	win_width = glutGet(GLUT_WINDOW_WIDTH);
@@ -72,6 +72,8 @@ int main(int argc, char **argv)
 static int init(void)
 {
 	utk_widget *win;
+
+	glEnable(GL_MULTISAMPLE);
 
 	glClearColor(0.15, 0.15, 0.15, 1);
 
