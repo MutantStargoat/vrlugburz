@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <GL/glut.h>
 #include <utk/cubertk.h>
 #include <drawtext.h>
 #include "level.h"
+#include "lview.h"
 
 static int init(void);
 static void cleanup(void);
@@ -22,6 +24,9 @@ static void uline(int x1, int y1, int x2, int y2, int width);
 static void utext(int x, int y, const char *txt, int sz);
 static int utextspacing(void);
 static int utextwidth(const char *txt, int sz);
+
+static int parse_args(int argc, char **argv);
+
 
 int win_width, win_height;
 int view_width, view_height;
@@ -44,6 +49,11 @@ static struct level *lvl;
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
+
+	if(parse_args(argc, argv) == -1) {
+		return 1;
+	}
+
 	glutInitWindowSize(1280, 800);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_MULTISAMPLE);
 	glutCreateWindow("dunger");
@@ -107,6 +117,9 @@ static int init(void)
 		fprintf(stderr, "failed to create level\n");
 		return -1;
 	}
+	if(init_lview(lvl) == -1) {
+		return -1;
+	}
 
 	splitx = UISPLIT * uiscale;
 	view_width = win_width - splitx;
@@ -117,6 +130,7 @@ static int init(void)
 
 static void cleanup(void)
 {
+	destroy_lview();
 	free_level(lvl);
 	dtx_close_font(uifont);
 	utk_close(uiroot);
@@ -160,7 +174,7 @@ static void display(void)
 	glVertex2f(0, view_height);
 	glEnd();
 
-	draw_level(lvl);
+	draw_lview();
 
 	glutSwapBuffers();
 }
@@ -173,6 +187,8 @@ static void reshape(int x, int y)
 	if(uiroot) {
 		utk_set_size(uiroot, x / uiscale, y / uiscale);
 	}
+
+	lview_viewport(splitx, 0, x - splitx, y);
 }
 
 static void keyb(unsigned char key, int x, int y)
@@ -229,9 +245,42 @@ static void motion(int x, int y)
 		}
 	}
 
+	lview_mouse(x, y);
+
 	utk_mmotion_event(x / uiscale, y / uiscale);
 	glutPostRedisplay();
 }
+
+static int parse_args(int argc, char **argv)
+{
+	int i;
+
+	for(i=1; i<argc; i++) {
+		if(argv[i][0] == '-') {
+			if(strcmp(argv[i], "-uiscale") == 0) {
+				if(!argv[++i] || !(uiscale = atoi(argv[i]))) {
+					fprintf(stderr, "-uiscale should be followed by a positive number\n");
+					return -1;
+				}
+			} else if(strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "-h") == 0) {
+				printf("Usage: %s [options]\n", argv[0]);
+				printf("Options:\n");
+				printf(" -uiscale <scale>: UI scale factor (default: 1)\n");
+				printf(" -h,-help: print usage and exit\n");
+				exit(0);
+			} else {
+				fprintf(stderr, "unknown option: %s\n", argv[i]);
+				return -1;
+			}
+		} else {
+			fprintf(stderr, "unexpected argument: %s\n", argv[i]);
+			return -1;
+		}
+	}
+	return 0;
+}
+
+/* --- ubertk callbacks --- */
 
 static void ucolor(int r, int g, int b, int a)
 {

@@ -22,6 +22,4 @@ struct level {
 struct level *create_level(int xsz, int ysz);
 void free_level(struct level *lvl);
 
-void draw_level(struct level *lvl);
-
 #endif	/* LEVEL_H_ */
