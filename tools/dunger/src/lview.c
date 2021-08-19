@@ -46,10 +46,36 @@ void zoom_lview(float dz)
 	cellsz = xsz > ysz ? ysz : xsz;
 }
 
-void lview_mouse(int x, int y)
+static int bnstate[8];
+
+void lview_mbutton(int bn, int press, int x, int y)
 {
 	float hsz = cellsz / 2.0f;
 	sel = pos_to_cell(x + hsz - vpx, vph - y + hsz - vpy, 0, 0);
+	bnstate[bn] = press;
+
+	if(press) {
+		if(!sel) return;
+		if(bn == 0) {
+			sel->type = CELL_WALK;
+		} else if(bn == 2) {
+			sel->type = CELL_SOLID;
+		}
+	}
+}
+
+void lview_mouse(int x, int y)
+{
+	float hsz = cellsz / 2.0f;
+	if(!(sel = pos_to_cell(x + hsz - vpx, vph - y + hsz - vpy, 0, 0))) {
+		return;
+	}
+
+	if(bnstate[0]) {
+		sel->type = CELL_WALK;
+	} else if(bnstate[2]) {
+		sel->type = CELL_SOLID;
+	}
 }
 
 #define LTHICK	0.5f

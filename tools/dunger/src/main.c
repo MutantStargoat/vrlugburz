@@ -226,6 +226,8 @@ static void mouse(int bn, int st, int x, int y)
 		if(press) view_zoom -= 0.1;
 	}
 
+	lview_mbutton(bidx, press, x, y);
+
 	utk_mbutton_event(bidx, press, x / uiscale, y / uiscale);
 	glutPostRedisplay();
 }

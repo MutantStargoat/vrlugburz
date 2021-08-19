@@ -11,6 +11,7 @@ void lview_viewport(int x, int y, int xsz, int ysz);
 void pan_lview(float dx, float dy);
 void zoom_lview(float dz);
 
+void lview_mbutton(int bn, int press, int x, int y);
 void lview_mouse(int x, int y);
 
 void draw_lview(void);
