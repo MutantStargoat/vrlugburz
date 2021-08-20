@@ -16,6 +16,16 @@ static void keyup(unsigned char key, int x, int y);
 static void mouse(int bn, int st, int x, int y);
 static void motion(int x, int y);
 
+static void cb_new(utk_event *ev, void *data);
+static void cb_open(utk_event *ev, void *data);
+static void cb_save(utk_event *ev, void *data);
+
+static void cb_cancel(utk_event *ev, void *data);
+static void cb_new_ok(utk_event *ev, void *data);
+
+static int parse_args(int argc, char **argv);
+
+
 static void ucolor(int r, int g, int b, int a);
 static void uclip(int x1, int y1, int x2, int y2);
 static void uimage(int x, int y, const void *pix, int xsz, int ysz);
@@ -24,8 +34,6 @@ static void uline(int x1, int y1, int x2, int y2, int width);
 static void utext(int x, int y, const char *txt, int sz);
 static int utextspacing(void);
 static int utextwidth(const char *txt, int sz);
-
-static int parse_args(int argc, char **argv);
 
 
 int win_width, win_height;
@@ -41,7 +49,7 @@ int splitx;
 
 #define FONTSZ	16
 static struct dtx_font *uifont;
-static utk_widget *uiroot;
+static utk_widget *uiroot, *uiwin_new;
 
 static struct level *lvl;
 
@@ -81,7 +89,7 @@ int main(int argc, char **argv)
 
 static int init(void)
 {
-	utk_widget *win;
+	utk_widget *win, *box;
 
 	glEnable(GL_MULTISAMPLE);
 
@@ -109,9 +117,18 @@ static int init(void)
 
 	win = utk_vbox(uiroot, 0, UTK_DEF_SPACING);
 	utk_set_pos(win, 15, 15);
-	utk_button(win, "hello", 0, 0, 0, 0);
-	utk_button(win, "button 2", 0, 0, 0, 0);
-	utk_button(win, "button 3", 0, 0, 0, 0);
+	utk_button(win, "New", 0, 0, cb_new, 0);
+	utk_button(win, "Open ...", 0, 0, cb_open, 0);
+	utk_button(win, "Save ...", 0, 0, cb_save, 0);
+
+	uiwin_new = utk_window(uiroot, 10, 10, 300, 200, "New level");
+	{
+		const char *items[] = {"small (8x8)", "medium (16x16)", "large (32x32)"};
+		utk_combobox_items(uiwin_new, items, sizeof items / sizeof *items, 0, 0);
+	}
+	box = utk_hbox(uiwin_new, UTK_DEF_PADDING, UTK_DEF_SPACING);
+	utk_button(box, "OK", 0, 0, cb_new_ok, 0);
+	utk_button(box, "Cancel", 0, 0, cb_cancel, uiwin_new);
 
 	if(!(lvl = create_level(32, 32))) {
 		fprintf(stderr, "failed to create level\n");
@@ -251,6 +268,28 @@ static void motion(int x, int y)
 
 	utk_mmotion_event(x / uiscale, y / uiscale);
 	glutPostRedisplay();
+}
+
+static void cb_new(utk_event *ev, void *data)
+{
+	utk_show(uiwin_new);
+}
+
+static void cb_open(utk_event *ev, void *data)
+{
+}
+
+static void cb_save(utk_event *ev, void *data)
+{
+}
+
+static void cb_cancel(utk_event *ev, void *data)
+{
+	utk_hide(data);
+}
+
+static void cb_new_ok(utk_event *ev, void *data)
+{
 }
 
 static int parse_args(int argc, char **argv)
