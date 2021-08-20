@@ -50,6 +50,8 @@ int splitx;
 #define FONTSZ	16
 static struct dtx_font *uifont;
 static utk_widget *uiroot, *uiwin_new;
+static utk_widget *uigrab;
+static utk_widget *cbox_newsz;
 
 static struct level *lvl;
 
@@ -89,7 +91,8 @@ int main(int argc, char **argv)
 
 static int init(void)
 {
-	utk_widget *win, *box;
+	int pad;
+	utk_widget *win, *hbox, *vbox;
 
 	glEnable(GL_MULTISAMPLE);
 
@@ -121,14 +124,20 @@ static int init(void)
 	utk_button(win, "Open ...", 0, 0, cb_open, 0);
 	utk_button(win, "Save ...", 0, 0, cb_save, 0);
 
-	uiwin_new = utk_window(uiroot, 10, 10, 300, 200, "New level");
+	uiwin_new = utk_window(uiroot, (win_width - 220) / 2, (win_height - 150) / 2,
+			220, 150, "New level");
+	vbox = utk_vbox(uiwin_new, UTK_DEF_PADDING, UTK_DEF_SPACING);
 	{
-		const char *items[] = {"small (8x8)", "medium (16x16)", "large (32x32)"};
-		utk_combobox_items(uiwin_new, items, sizeof items / sizeof *items, 0, 0);
+		const char *items[] = {"small (16x16)", "medium (24x24)", "large (32x32)"};
+		cbox_newsz = utk_combobox_items(vbox, items, sizeof items / sizeof *items, 0, 0);
+		utk_select(cbox_newsz, 2);
 	}
-	box = utk_hbox(uiwin_new, UTK_DEF_PADDING, UTK_DEF_SPACING);
-	utk_button(box, "OK", 0, 0, cb_new_ok, 0);
-	utk_button(box, "Cancel", 0, 0, cb_cancel, uiwin_new);
+	hbox = utk_hbox(vbox, UTK_DEF_PADDING, UTK_DEF_SPACING);
+	utk_button(hbox, "OK", 0, 0, cb_new_ok, 0);
+	utk_button(hbox, "Cancel", 0, 0, cb_cancel, uiwin_new);
+	pad = utk_get_padding(uiwin_new);
+	utk_set_size(uiwin_new, utk_get_width(vbox) + pad * 2.0f, utk_get_height(vbox) + pad * 2.0f);
+
 
 	if(!(lvl = create_level(32, 32))) {
 		fprintf(stderr, "failed to create level\n");
@@ -160,22 +169,6 @@ static void display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	/* draw UI */
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, splitx, win_height, 0, -1, 1);
-	glViewport(0, 0, splitx, win_height);
-
-	glBegin(GL_QUADS);
-	glColor3f(0.25, 0.25, 0.25);
-	glVertex2f(0, 0);
-	glVertex2f(splitx, 0);
-	glVertex2f(splitx, win_height);
-	glVertex2f(0, win_height);
-	glEnd();
-	utk_draw(uiroot);
-
 	/* draw view */
 
 	glMatrixMode(GL_PROJECTION);
@@ -192,6 +185,23 @@ static void display(void)
 	glEnd();
 
 	draw_lview();
+
+	/* draw UI */
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, win_width, win_height, 0, -1, 1);
+	glViewport(0, 0, win_width, win_height);
+
+	glBegin(GL_QUADS);
+	glColor3f(0.25, 0.25, 0.25);
+	glVertex2f(0, 0);
+	glVertex2f(splitx, 0);
+	glVertex2f(splitx, win_height);
+	glVertex2f(0, win_height);
+	glEnd();
+	utk_draw(uiroot);
+
 
 	glutSwapBuffers();
 }
@@ -210,7 +220,20 @@ static void reshape(int x, int y)
 
 static void keyb(unsigned char key, int x, int y)
 {
-	if(key == 27) exit(0);
+	switch(key) {
+	case 27:
+		if(uigrab) {
+			utk_hide(uigrab);
+			uigrab = 0;
+		} else {
+			exit(0);
+		}
+		return;
+
+	default:
+		break;
+	}
+
 	utk_keyboard_event(key, 1);
 	glutPostRedisplay();
 }
@@ -238,12 +261,14 @@ static void mouse(int bn, int st, int x, int y)
 			clickx = clicky = -1;
 		}
 	} else if(bn == 3) {
-		if(press) view_zoom += 0.1;
+		if(press) zoom_lview(0.1);
 	} else if(bn == 4) {
-		if(press) view_zoom -= 0.1;
+		if(press) zoom_lview(-0.1);
 	}
 
-	lview_mbutton(bidx, press, x, y);
+	if(!uigrab) {
+		lview_mbutton(bidx, press, x, y);
+	}
 
 	utk_mbutton_event(bidx, press, x / uiscale, y / uiscale);
 	glutPostRedisplay();
@@ -259,12 +284,13 @@ static void motion(int x, int y)
 
 	if(clickx >= splitx) {
 		if(bnstate[1]) {
-			view_panx -= dx;
-			view_pany += dy;
+			pan_lview(-dx, dy);
 		}
 	}
 
-	lview_mouse(x, y);
+	if(!uigrab) {
+		lview_mouse(x, y);
+	}
 
 	utk_mmotion_event(x / uiscale, y / uiscale);
 	glutPostRedisplay();
@@ -273,6 +299,31 @@ static void motion(int x, int y)
 static void cb_new(utk_event *ev, void *data)
 {
 	utk_show(uiwin_new);
+	uigrab = uiwin_new;
+}
+
+static void cb_new_ok(utk_event *ev, void *data)
+{
+	static int levsz[] = {16, 24, 32};
+	int sz;
+	struct level *newlvl;
+
+	sz = levsz[utk_get_selected(cbox_newsz)];
+
+	if(!(newlvl = create_level(sz, sz))) {
+		fprintf(stderr, "failed to create new %dx%d level\n", sz, sz);
+		/* TODO: messagebox */
+		return;
+	}
+
+	free_level(lvl);
+	destroy_lview();
+
+	lvl = newlvl;
+	init_lview(newlvl);
+
+	utk_hide(uiwin_new);
+	uigrab = 0;
 }
 
 static void cb_open(utk_event *ev, void *data)
@@ -286,10 +337,7 @@ static void cb_save(utk_event *ev, void *data)
 static void cb_cancel(utk_event *ev, void *data)
 {
 	utk_hide(data);
-}
-
-static void cb_new_ok(utk_event *ev, void *data)
-{
+	uigrab = 0;
 }
 
 static int parse_args(int argc, char **argv)
