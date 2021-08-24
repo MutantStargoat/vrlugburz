@@ -17,11 +17,13 @@ static void mouse(int bn, int st, int x, int y);
 static void motion(int x, int y);
 
 static void cb_new(utk_event *ev, void *data);
+static void cb_new_ok(utk_event *ev, void *data);
 static void cb_open(utk_event *ev, void *data);
+static void cb_open_ok(utk_event *ev, void *data);
 static void cb_save(utk_event *ev, void *data);
+static void cb_save_ok(utk_event *ev, void *data);
 
 static void cb_cancel(utk_event *ev, void *data);
-static void cb_new_ok(utk_event *ev, void *data);
 
 static int parse_args(int argc, char **argv);
 
@@ -200,7 +202,11 @@ static void display(void)
 	glVertex2f(splitx, win_height);
 	glVertex2f(0, win_height);
 	glEnd();
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	utk_draw(uiroot);
+	glDisable(GL_BLEND);
 
 
 	glutSwapBuffers();
@@ -223,7 +229,11 @@ static void keyb(unsigned char key, int x, int y)
 	switch(key) {
 	case 27:
 		if(uigrab) {
-			utk_hide(uigrab);
+			if(utk_is_dialog(uigrab)) {
+				utk_destroy_window(uigrab);
+			} else {
+				utk_hide(uigrab);
+			}
 			uigrab = 0;
 		} else {
 			exit(0);
@@ -311,8 +321,8 @@ static void cb_new_ok(utk_event *ev, void *data)
 	sz = levsz[utk_get_selected(cbox_newsz)];
 
 	if(!(newlvl = create_level(sz, sz))) {
-		fprintf(stderr, "failed to create new %dx%d level\n", sz, sz);
-		/* TODO: messagebox */
+		utk_message_dialog("failed to create new level", UTK_MSG_TYPE_ERROR,
+				UTK_MSG_BN_OK, cb_cancel, 0);
 		return;
 	}
 
@@ -328,15 +338,39 @@ static void cb_new_ok(utk_event *ev, void *data)
 
 static void cb_open(utk_event *ev, void *data)
 {
+	uigrab = utk_file_dialog(UTK_FILE_DIALOG_OPEN, 0, "Level file (*.lvl) [.lvl]", 0, cb_open_ok, 0);
+}
+
+static void cb_open_ok(utk_event *ev, void *data)
+{
+	utk_widget *dlg = utk_event_widget(ev);
+	printf("selected: %s\n", utk_file_dialog_file(dlg));
+	utk_destroy_window(dlg);
+	if(uigrab == dlg) uigrab = 0;
 }
 
 static void cb_save(utk_event *ev, void *data)
 {
+	uigrab = utk_file_dialog(UTK_FILE_DIALOG_SAVE, 0, "Level file (*.lvl) [.lvl]", 0, cb_save_ok, 0);
+}
+
+static void cb_save_ok(utk_event *ev, void *data)
+{
+	utk_widget *dlg = utk_event_widget(ev);
+	printf("selected: %s\n", utk_file_dialog_file(dlg));
+	utk_destroy_window(dlg);
+	if(uigrab == dlg) uigrab = 0;
 }
 
 static void cb_cancel(utk_event *ev, void *data)
 {
-	utk_hide(data);
+	if(!data) data = utk_get_window(utk_event_widget(ev));
+
+	if(utk_is_dialog(data)) {
+		utk_destroy_window(data);
+	} else {
+		utk_hide(data);
+	}
 	uigrab = 0;
 }
 
