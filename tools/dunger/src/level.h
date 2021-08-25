@@ -19,7 +19,10 @@ struct level {
 };
 
 
-struct level *create_level(int xsz, int ysz);
-void free_level(struct level *lvl);
+int init_level(struct level *lvl, int xsz, int ysz);
+void destroy_level(struct level *lvl);
+
+int load_level(struct level *lvl, const char *fname);
+int save_level(struct level *lvl, const char *fname);
 
 #endif	/* LEVEL_H_ */

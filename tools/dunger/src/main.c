@@ -47,7 +47,7 @@ int mousex, mousey, clickx, clicky;
 
 static float uiscale = 1.0f;
 #define UISPLIT	150
-int splitx;
+static int splitx;
 
 #define FONTSZ	16
 static struct dtx_font *uifont;
@@ -55,7 +55,7 @@ static utk_widget *uiroot, *uiwin_new;
 static utk_widget *uigrab;
 static utk_widget *cbox_newsz;
 
-static struct level *lvl;
+static struct level lvl;
 
 
 int main(int argc, char **argv)
@@ -141,11 +141,11 @@ static int init(void)
 	utk_set_size(uiwin_new, utk_get_width(vbox) + pad * 2.0f, utk_get_height(vbox) + pad * 2.0f);
 
 
-	if(!(lvl = create_level(32, 32))) {
+	if(init_level(&lvl, 32, 32) == -1) {
 		fprintf(stderr, "failed to create level\n");
 		return -1;
 	}
-	if(init_lview(lvl) == -1) {
+	if(init_lview(&lvl) == -1) {
 		return -1;
 	}
 
@@ -159,7 +159,7 @@ static int init(void)
 static void cleanup(void)
 {
 	destroy_lview();
-	free_level(lvl);
+	destroy_level(&lvl);
 	dtx_close_font(uifont);
 	utk_close(uiroot);
 }
@@ -316,21 +316,21 @@ static void cb_new_ok(utk_event *ev, void *data)
 {
 	static int levsz[] = {16, 24, 32};
 	int sz;
-	struct level *newlvl;
+	struct level newlvl;
 
 	sz = levsz[utk_get_selected(cbox_newsz)];
 
-	if(!(newlvl = create_level(sz, sz))) {
+	if(init_level(&newlvl, sz, sz) == -1) {
 		utk_message_dialog("failed to create new level", UTK_MSG_TYPE_ERROR,
 				UTK_MSG_BN_OK, cb_cancel, 0);
 		return;
 	}
 
-	free_level(lvl);
+	destroy_level(&lvl);
 	destroy_lview();
 
 	lvl = newlvl;
-	init_lview(newlvl);
+	init_lview(&lvl);
 
 	utk_hide(uiwin_new);
 	uigrab = 0;
