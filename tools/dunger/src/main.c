@@ -343,10 +343,22 @@ static void cb_open(utk_event *ev, void *data)
 
 static void cb_open_ok(utk_event *ev, void *data)
 {
+	char *errmsg = 0;
+	const char *path;
+
 	utk_widget *dlg = utk_event_widget(ev);
-	printf("selected: %s\n", utk_file_dialog_file(dlg));
+	path = utk_file_dialog_path(dlg);
+	printf("selected: %s\n", path);
+	if(load_level(&lvl, path) == -1) {
+		errmsg = alloca(strlen(path) + 32);
+		sprintf(errmsg, "Failed to load level: %s", path);
+	}
 	utk_destroy_window(dlg);
 	if(uigrab == dlg) uigrab = 0;
+
+	if(errmsg) {
+		uigrab = utk_message_dialog(errmsg, UTK_MSG_TYPE_ERROR, UTK_MSG_BN_OK, cb_cancel, 0);
+	}
 }
 
 static void cb_save(utk_event *ev, void *data)
