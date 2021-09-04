@@ -1,17 +1,26 @@
 #include <assert.h>
 #include "game.h"
 #include "opengl.h"
+#include "level.h"
+
+struct level lvl;
 
 int game_init(void)
 {
 	if(init_opengl() == -1) {
 		return -1;
 	}
+
+	if(load_level(&lvl, "data/test.lvl") == -1) {
+		return -1;
+	}
+
 	return 0;
 }
 
 void game_shutdown(void)
 {
+	destroy_level(&lvl);
 }
 
 void game_display(void)

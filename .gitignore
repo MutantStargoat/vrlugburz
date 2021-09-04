@@ -1,6 +1,10 @@
 *.o
 *.d
+*.a
 *.swp
-lugburz
 tools/dunger/dunger
 *.ttf
+*.lvl
+data/
+datasrc/
+game

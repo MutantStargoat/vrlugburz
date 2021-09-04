@@ -1,17 +1,21 @@
 src = $(wildcard src/*.c)
 obj = $(src:.c=.o)
 dep = $(src:.c=.d)
-bin = lugburz
+bin = game
 
 #opt = -O3
 dbg = -g
 warn = -pedantic -Wall
 def = -DMINIGLUT_USE_LIBC
+inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext
+libdir = -Llibs/treestore -Llibs/imago -Llibs/drawtext
 
 CFLAGS = $(warn) $(opt) $(dbg) $(def) $(inc) -fcommon -MMD
-LDFLAGS = -lGL -lX11 -lm
+LDFLAGS = $(libdir) -ldrawtext -limago -ltreestore $(libgl) -lm
 
-$(bin): $(obj)
+libgl = -lGL -lX11 -lXext
+
+$(bin): $(obj) libs
 	$(CC) -o $@ $(obj) $(LDFLAGS)
 
 -include $(dep)
@@ -23,3 +27,11 @@ clean:
 .PHONY: cleandep
 cleandep:
 	rm -f $(dep)
+
+.PHONY: libs
+libs:
+	$(MAKE) -C libs
+
+.PHONY: clean-libs
+clean-libs:
+	$(MAKE) -C libs clean
