@@ -339,14 +339,18 @@ static int load_mtllib(struct scenefile *scn, const char *path_prefix, const cha
 
 		if(memcmp(line, "newmtl", 6) == 0) {
 			if(mtl) {
+				conv_mtl(mtl, &om, path_prefix);
 				mtl->next = scn->mtllist;
 				scn->mtllist = mtl;
 			}
-			if((mtl = calloc(1, sizeof *mtl))) {
-				if((line = cleanline(line + 6))) {
-					mtl->name = strdup(line);
-				}
+			mtl = calloc(1, sizeof *mtl);
+
+			memset(&om, 0, sizeof om);
+
+			if((line = cleanline(line + 6))) {
+				om.name = strdup(line);
 			}
+
 		} else if(memcmp(line, "Kd", 2) == 0) {
 			sscanf(line + 3, "%f %f %f", &om.kd.x, &om.kd.y, &om.kd.z);
 		} else if(memcmp(line, "Ks", 2) == 0) {
@@ -370,10 +374,10 @@ static int load_mtllib(struct scenefile *scn, const char *path_prefix, const cha
 				om.map_alpha = strdup(line);
 			}
 		}
-		conv_mtl(mtl, &om, path_prefix);
 	}
 
 	if(mtl) {
+		conv_mtl(mtl, &om, path_prefix);
 		mtl->next = scn->mtllist;
 		scn->mtllist = mtl;
 	}
@@ -397,7 +401,7 @@ static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_pr
 	int len, prefix_len, maxlen = 0;
 
 	memset(mm, 0, sizeof *mm);
-	mm->name = strdup(om->name);
+	mm->name = om->name;
 	mm->color = om->kd;
 	mm->spec = om->ks;
 	mm->shininess = om->shin;

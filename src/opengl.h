@@ -2,19 +2,18 @@
 #define OPENGL_H_
 
 #include <GL/gl.h>
-
-#ifndef GL_VERSION_2_0
-#define LOADEXT_SDR
-#endif
-
 #include <GL/glext.h>
 
 struct glcaps {
 	int ver_major, ver_minor;
-	int sdr;
+	int sdr, vbo;
 } glcaps;
 
-#ifndef LOADEXT_SDR
+PFNGLGENBUFFERSPROC glGenBuffers;
+PFNGLDELETEBUFFERSPROC glDeleteBuffers;
+PFNGLBINDBUFFERPROC glBindBuffer;
+PFNGLBUFFERDATAPROC glBufferData;
+
 PFNGLCREATEPROGRAMPROC glCreateProgram;
 PFNGLDELETEPROGRAMPROC glDeleteProgram;
 PFNGLATTACHSHADERPROC glAttachShader;
@@ -37,7 +36,10 @@ PFNGLSHADERSOURCEPROC glShaderSource;
 PFNGLCOMPILESHADERPROC glCompileShader;
 PFNGLGETSHADERIVPROC glGetShaderiv;
 PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
-#endif
+PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 
 int init_opengl(void);
 

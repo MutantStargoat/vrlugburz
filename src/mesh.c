@@ -3,9 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <float.h>
-#define GL_GLEXT_PROTOTYPES 1
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include "opengl.h"
 #include "mesh.h"
 
 static int update_mesh_vbo(struct mesh *m);

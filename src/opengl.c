@@ -28,11 +28,21 @@ int init_opengl(void)
 		return -1;
 	}
 
+	if(glcaps.ver_major >= 2 || glcaps.ver_minor >= 5 || (strstr(glext, "GL_ARB_vertex_buffer_object"))) {
+		glcaps.vbo = 1;
+	}
+
 	if(glcaps.ver_major >= 2 || (strstr(glext, "GL_ARB_vertex_shader") && strstr(glext, "GL_ARB_fragment_shader"))) {
 		glcaps.sdr = 1;
 	}
 
-#ifndef LOADEXT_SDR
+	if(glcaps.vbo) {
+		LOADPROC(PFNGLGENBUFFERSPROC, glGenBuffers);
+		LOADPROC(PFNGLDELETEBUFFERSPROC, glDeleteBuffers);
+		LOADPROC(PFNGLBINDBUFFERPROC, glBindBuffer);
+		LOADPROC(PFNGLBUFFERDATAPROC, glBufferData);
+	}
+
 	if(glcaps.sdr) {
 		LOADPROC(PFNGLCREATEPROGRAMPROC, glCreateProgram);
 		LOADPROC(PFNGLDELETEPROGRAMPROC, glDeleteProgram);
@@ -56,8 +66,11 @@ int init_opengl(void)
 		LOADPROC(PFNGLCOMPILESHADERPROC, glCompileShader);
 		LOADPROC(PFNGLGETSHADERIVPROC, glGetShaderiv);
 		LOADPROC(PFNGLGETSHADERINFOLOGPROC, glGetShaderInfoLog);
+		LOADPROC(PFNGLBINDATTRIBLOCATIONPROC, glBindAttribLocation);
+		LOADPROC(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray);
+		LOADPROC(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glDisableVertexAttribArray);
+		LOADPROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer);
 	}
-#endif
 
 	return 0;
 }
