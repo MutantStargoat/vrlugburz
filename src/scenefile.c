@@ -320,7 +320,7 @@ static int load_mtllib(struct scenefile *scn, const char *path_prefix, const cha
 	FILE *fp;
 	char buf[256], *line;
 	struct objmtl om;
-	struct material *mtl;
+	struct material *mtl = 0;
 
 	if(path_prefix && *path_prefix) {
 		sprintf(buf, "%s/%s", path_prefix, mtlfname);
