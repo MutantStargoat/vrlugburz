@@ -61,6 +61,7 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 	char *sep;
 	struct rbtree *rbtree = 0;
 
+	memset(scn, 0, sizeof *scn);
 
 	varr_size = varr_max = narr_size = narr_max = tarr_size = tarr_max = 0;
 	varr = narr = 0;
@@ -73,8 +74,7 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 
 	if(!(rbtree = rb_create(cmp_facevert))) {
 		fprintf(stderr, "load_scenefile: failed to create facevertex search tree\n");
-		fclose(fp);
-		return -1;
+		goto fail;
 	}
 	rb_set_delete_func(rbtree, free_rbnode_key, 0);
 
@@ -86,6 +86,14 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 	}
 	path_prefix = alloca(strlen(buf) + 1);
 	strcpy(path_prefix, buf);
+
+	if(sep) {
+		sep = (char*)fname + (sep - buf);
+	}
+	if(!(scn->fname = strdup(sep ? sep + 1 : fname))) {
+		fprintf(stderr, "failed to allocate scenefile name buffer\n");
+		goto fail;
+	}
 
 	if(!(mesh = malloc(sizeof *mesh))) {
 		fprintf(stderr, "failed to allocate mesh\n");
@@ -199,12 +207,16 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 	}
 	mesh = 0;
 
-	printf("load_scenefile: loaded %d meshes, %d vertices\n", scn->num_meshes,
-			varr_size);
+	printf("load_scenefile %s: loaded %d meshes, %d vertices\n", scn->fname,
+			scn->num_meshes, varr_size);
 
 	res = 0;
 
+	if(0) {
 fail:
+		free(scn->fname);
+	}
+
 	fclose(fp);
 	free(mesh);
 	free(varr);

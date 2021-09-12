@@ -4,6 +4,8 @@
 #include "mesh.h"
 
 struct scenefile {
+	char *fname;
+
 	struct mesh *meshlist;
 	int num_meshes;
 

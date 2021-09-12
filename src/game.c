@@ -68,7 +68,7 @@ void game_display(void)
 	glLoadMatrixf(proj_matrix);
 
 	cgm_midentity(view_matrix);
-	cgm_mpretranslate(view_matrix, 0, 0, -cam_dist);
+	cgm_mpretranslate(view_matrix, 0, 1.5, -cam_dist);
 	cgm_mprerotate(view_matrix, cam_phi, 1, 0, 0);
 	cgm_mprerotate(view_matrix, cam_theta, 0, 1, 0);
 	glMatrixMode(GL_MODELVIEW);
