@@ -30,7 +30,7 @@ void destroy_level(struct level *lvl)
 int load_level(struct level *lvl, const char *fname)
 {
 	struct ts_node *ts, *node, *iter;
-	int sz, cx, cy;
+	int i, j, sz, cx, cy;
 	struct cell *cell;
 
 	lvl->fname = strdup(fname);
@@ -75,7 +75,40 @@ int load_level(struct level *lvl, const char *fname)
 			}
 			cell = lvl->cells + cy * sz + cx;
 			cell->type = ts_get_attr_int(node, "blocked", 0) ? CELL_BLOCKED : CELL_WALK;
-			/* TODO wall tiles and detail objects */
+
+			/* abuse the next pointer to hang the treestore node temporarilly */
+			cell->next = (struct cell*)node;
+		}
+	}
+
+	/* assign wall types to all occupied cells */
+	cell = lvl->cells;
+	for(i=0; i<lvl->height; i++) {
+		for(j=0; j<lvl->width; j++) {
+			if(cell->type == CELL_SOLID) {
+				cell++;
+				continue;
+			}
+
+			/* TODO take wall choice from the level file into account */
+			/* TODO detect corners */
+			node = (struct ts_node*)cell->next;
+			cell->next = 0;
+
+			if(j <= 0 || cell[-1].type == CELL_SOLID) {
+				cell->wall[0] = TILE_STRAIGHT;
+			}
+			if(i <= 0 || cell[-lvl->width].type == CELL_SOLID) {
+				cell->wall[1] = TILE_STRAIGHT;
+			}
+			if(j >= lvl->width - 1 || cell[1].type == CELL_SOLID) {
+				cell->wall[2] = TILE_STRAIGHT;
+			}
+			if(i >= lvl->height - 1 || cell[lvl->width].type == CELL_SOLID) {
+				cell->wall[3] = TILE_STRAIGHT;
+			}
+
+			cell++;
 		}
 	}
 
@@ -201,5 +234,94 @@ static int load_tileset(struct level *lvl, struct ts_node *tsn)
 		node = node->next;
 	}
 
+	return 0;
+}
+
+struct tile *find_level_tile(struct level *lvl, const char *tname)
+{
+	struct tile *tile = lvl->tiles;
+	while(tile) {
+		if(strcmp(tile->name, tname) == 0) {
+			return tile;
+		}
+		tile = tile->next;
+	}
+	return 0;
+}
+
+int gen_cell_geom(struct level *lvl, struct cell *cell)
+{
+	int i;
+	struct meshgroup *wallgeom;
+	struct tile *tstr;
+	struct mesh *mesh, *tmesh;
+	float xform[16];
+
+	printf("foo!\n");
+
+	if(!(tstr = find_level_tile(lvl, "straight"))) {
+		return -1;
+	}
+
+	if(!(wallgeom = malloc(sizeof *wallgeom))) {
+		return -1;
+	}
+	init_meshgroup(wallgeom);
+
+	for(i=0; i<4; i++) {
+		if(cell->wall[i] == TILE_STRAIGHT) {	/* TODO: support other wall types */
+			cgm_mrotation_y(xform, i * M_PI / 2.0f);
+
+			tmesh = tstr->scn.meshlist;
+			while(tmesh) {
+				if(!(mesh = malloc(sizeof *mesh))) {
+					return -1;
+				}
+
+				/* create a copy of the tile mesh */
+				if(copy_mesh(mesh, tmesh) == -1) {
+					free(mesh);
+					return -1;
+				}
+				if(i) xform_mesh(mesh, xform);	/* rotate it to match the wall angle */
+
+				/* add it to the level meshlist */
+				mesh->next = lvl->meshlist;
+				lvl->meshlist = mesh;
+
+				/* add it to the meshgroup */
+				if(add_meshgroup_mesh(wallgeom, mesh) == -1) {
+					destroy_mesh(mesh);
+					free(mesh);
+					return -1;
+				}
+
+				tmesh = tmesh->next;
+			}
+		}
+	}
+
+	/* TODO: append to other existing meshgroups for detail objects */
+	cell->mgrp = wallgeom;
+	cell->num_mgrp = 1;
+
+	return 0;
+}
+
+int gen_level_geom(struct level *lvl)
+{
+	int i, j;
+	struct cell *cell;
+
+	for(i=0; i<lvl->height; i++) {
+		for(j=0; j<lvl->width; j++) {
+			cell = lvl->cells + i * lvl->width + j;
+			if(cell->type != CELL_SOLID) {
+				if(gen_cell_geom(lvl, cell) == -1) {
+					return -1;
+				}
+			}
+		}
+	}
 	return 0;
 }

@@ -56,6 +56,7 @@ struct mesh {
 };
 
 struct meshgroup {
+	/* doesn't own the meshes */
 	struct mesh **meshes;
 	int num_meshes, max_meshes;
 
@@ -70,6 +71,7 @@ struct meshgroup {
 void init_mesh(struct mesh *m);
 void destroy_mesh(struct mesh *m);
 void clear_mesh(struct mesh *m);
+int copy_mesh(struct mesh *dest, struct mesh *src);
 
 void init_meshgroup(struct meshgroup *mg);
 void destroy_meshgroup(struct meshgroup *mg);
@@ -85,5 +87,7 @@ int add_meshgroup_mesh(struct meshgroup *mg, struct mesh *m);
 
 void draw_mesh(struct mesh *m);
 void draw_meshgroup(struct meshgroup *mg);
+
+void xform_mesh(struct mesh *mesh, float *mat);
 
 #endif	/* MESH_H_ */

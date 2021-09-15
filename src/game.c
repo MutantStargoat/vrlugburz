@@ -6,8 +6,9 @@
 #include "scenefile.h"
 #include "sdr.h"
 
+static void draw_level(void);
+
 struct level lvl;
-struct scenefile scn;
 
 int win_width, win_height;
 float win_aspect;
@@ -41,11 +42,6 @@ int game_init(void)
 		return -1;
 	}
 
-	/* DBG */
-	if(load_scenefile(&scn, "data/dwall1.obj") == -1) {
-		return -1;
-	}
-
 	return 0;
 }
 
@@ -57,8 +53,6 @@ void game_shutdown(void)
 
 void game_display(void)
 {
-	struct mesh *mesh;
-
 	glClearColor(0.1, 0.1, 0.1, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -68,24 +62,36 @@ void game_display(void)
 	glLoadMatrixf(proj_matrix);
 
 	cgm_midentity(view_matrix);
-	cgm_mpretranslate(view_matrix, 0, 1.5, -cam_dist);
+	cgm_mpretranslate(view_matrix, 0, -1.7, -cam_dist);
 	cgm_mprerotate(view_matrix, cam_phi, 1, 0, 0);
 	cgm_mprerotate(view_matrix, cam_theta, 0, 1, 0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(view_matrix);
 
-	glUseProgram(sdr_foo);
-
-	mesh = scn.meshlist;
-	while(mesh) {
-		draw_mesh(mesh);
-		mesh = mesh->next;
-	}
-
-	glUseProgram(0);
+	draw_level();
 
 	game_swap_buffers();
 	assert(glGetError() == GL_NO_ERROR);
+}
+
+static void draw_level(void)
+{
+	int i, j, k;
+	struct cell *cell;
+
+	glUseProgram(sdr_foo);
+
+	cell = lvl.cells;
+	for(i=0; i<lvl.height; i++) {
+		for(j=0; j<lvl.width; j++) {
+			for(k=0; k<cell->num_mgrp; k++) {
+				draw_meshgroup(cell->mgrp + k);
+			}
+			cell++;
+		}
+	}
+
+	glUseProgram(0);
 }
 
 void game_reshape(int x, int y)

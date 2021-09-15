@@ -39,6 +39,34 @@ void clear_mesh(struct mesh *m)
 	m->bbvalid = m->vbovalid = 0;
 }
 
+int copy_mesh(struct mesh *dest, struct mesh *src)
+{
+	init_mesh(dest);
+
+	if(src->max_verts && !(dest->varr = malloc(src->max_verts * sizeof *dest->varr))) {
+		return -1;
+	}
+	if(src->max_idx && !(dest->iarr = malloc(src->max_idx * sizeof *dest->iarr))) {
+		free(dest->varr);
+		dest->varr = 0;
+		return -1;
+	}
+
+	dest->num_verts = src->num_verts;
+	dest->max_verts = src->max_verts;
+	if(dest->varr) {
+		memcpy(dest->varr, src->varr, src->num_verts * sizeof *dest->varr);
+	}
+
+	dest->num_idx = src->num_idx;
+	dest->max_idx = src->max_idx;
+	if(dest->iarr) {
+		memcpy(dest->iarr, src->iarr, src->num_idx * sizeof *dest->iarr);
+	}
+
+	return 0;
+}
+
 void init_meshgroup(struct meshgroup *mg)
 {
 	memset(mg, 0, sizeof *mg);
@@ -332,4 +360,18 @@ static int update_meshgroup_vbo(struct meshgroup *mg)
 	free(varr);
 	free(iarr);
 	return 0;
+}
+
+void xform_mesh(struct mesh *mesh, float *mat)
+{
+	int i;
+
+	mesh->vbovalid = 0;
+	mesh->bbvalid = 0;
+
+	for(i=0; i<mesh->num_verts; i++) {
+		cgm_vmul_v3m4(&mesh->varr[i].pos, mat);
+		cgm_vmul_v3m3(&mesh->varr[i].norm, mat);
+		cgm_vmul_v3m3(&mesh->varr[i].tang, mat);
+	}
 }
