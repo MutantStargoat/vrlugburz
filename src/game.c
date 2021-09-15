@@ -1,21 +1,24 @@
+#include <stdio.h>
 #include <assert.h>
 #include "cgmath/cgmath.h"
 #include "game.h"
 #include "opengl.h"
 #include "level.h"
+#include "player.h"
 #include "scenefile.h"
 #include "sdr.h"
 
 static void draw_level(void);
 
 struct level lvl;
+struct player player;
 
 int win_width, win_height;
 float win_aspect;
 int mouse_x, mouse_y;
 int bnstate[8];
 
-float cam_theta, cam_phi, cam_dist = 10;
+float cam_dist = 10;
 float view_matrix[16], proj_matrix[16];
 
 unsigned int sdr_foo;
@@ -41,6 +44,14 @@ int game_init(void)
 	if(load_level(&lvl, "data/test.lvl") == -1) {
 		return -1;
 	}
+	gen_level_geom(&lvl);
+
+	init_player(&player);
+	player.lvl = &lvl;
+	player.cx = lvl.px;
+	player.cy = lvl.py;
+
+	printf("start pos: %d,%d\n", player.cx, player.cy);
 
 	return 0;
 }
@@ -61,12 +72,9 @@ void game_display(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_matrix);
 
-	cgm_midentity(view_matrix);
-	cgm_mpretranslate(view_matrix, 0, -1.7, -cam_dist);
-	cgm_mprerotate(view_matrix, cam_phi, 1, 0, 0);
-	cgm_mprerotate(view_matrix, cam_theta, 0, 1, 0);
+	upd_player_xform(&player);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(view_matrix);
+	glLoadMatrixf(player.view_xform);
 
 	draw_level();
 
@@ -78,16 +86,24 @@ static void draw_level(void)
 {
 	int i, j, k;
 	struct cell *cell;
+	float xform[16];
 
 	glUseProgram(sdr_foo);
 
 	cell = lvl.cells;
 	for(i=0; i<lvl.height; i++) {
 		for(j=0; j<lvl.width; j++) {
+			cgm_mtranslation(xform, j * lvl.cell_size, 0, i * lvl.cell_size);
+
+			glPushMatrix();
+			glMultMatrixf(xform);
+
 			for(k=0; k<cell->num_mgrp; k++) {
 				draw_meshgroup(cell->mgrp + k);
 			}
 			cell++;
+
+			glPopMatrix();
 		}
 	}
 
@@ -127,10 +143,10 @@ void game_mmotion(int x, int y)
 	if(!(dx | dy)) return;
 
 	if(bnstate[0]) {
-		cam_theta += cgm_deg_to_rad(dx * 0.5f);
-		cam_phi += cgm_deg_to_rad(dy * 0.5f);
-		if(cam_phi < -M_PI/2) cam_phi = -M_PI/2;
-		if(cam_phi > M_PI/2) cam_phi = M_PI/2;
+		player.theta -= cgm_deg_to_rad(dx * 0.5f);
+		player.phi -= cgm_deg_to_rad(dy * 0.5f);
+		if(player.phi < -M_PI/2) player.phi = -M_PI/2;
+		if(player.phi > M_PI/2) player.phi = M_PI/2;
 	}
 	if(bnstate[2]) {
 		cam_dist += dy * 0.1;

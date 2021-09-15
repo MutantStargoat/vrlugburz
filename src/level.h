@@ -3,6 +3,8 @@
 
 #include "scenefile.h"
 
+#define DEF_CELL_SIZE	3.0f
+
 enum {
 	TILE_EMPTY,
 	TILE_STRAIGHT,
@@ -38,6 +40,8 @@ struct level {
 	char *fname, *dirname;
 
 	int width, height;
+	int px, py;				/* player start position */
+	float cell_size;
 	struct cell *cells;
 
 	struct tile *tiles;
@@ -55,7 +59,7 @@ void destroy_level(struct level *lvl);
 int load_level(struct level *lvl, const char *fname);
 int save_level(struct level *lvl, const char *fname);
 
-struct tile *find_level_tile(struct level *lvl, const char *tname);
+struct tile *find_level_tile(struct level *lvl, int type);
 
 int gen_cell_geom(struct level *lvl, struct cell *cell);
 int gen_level_geom(struct level *lvl);

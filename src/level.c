@@ -16,6 +16,7 @@ int init_level(struct level *lvl, int xsz, int ysz)
 	}
 	lvl->width = xsz;
 	lvl->height = ysz;
+	lvl->cell_size = DEF_CELL_SIZE;
 	return 0;
 }
 
@@ -32,6 +33,7 @@ int load_level(struct level *lvl, const char *fname)
 	struct ts_node *ts, *node, *iter;
 	int i, j, sz, cx, cy;
 	struct cell *cell;
+	float *vecptr;
 
 	lvl->fname = strdup(fname);
 	if((lvl->dirname = malloc(strlen(fname) + 1))) {
@@ -56,6 +58,12 @@ int load_level(struct level *lvl, const char *fname)
 		fprintf(stderr, "failed to initialize a %dx%d level\n", sz, sz);
 		ts_free_tree(ts);
 		return -1;
+	}
+	lvl->cell_size = ts_get_attr_num(ts, "cellsize", DEF_CELL_SIZE);
+
+	if((vecptr = ts_get_attr_vec(ts, "player", 0))) {
+		lvl->px = vecptr[0];
+		lvl->py = vecptr[1];
 	}
 
 	iter = ts->child_list;
@@ -186,7 +194,7 @@ err:
 
 static int load_tileset(struct level *lvl, struct ts_node *tsn)
 {
-	static const char *tile_types[] = {"straight", "corner", "door", 0};
+	static const char *tile_types[] = {"empty", "straight", "corner", "door", 0};
 
 	int i;
 	char *path;
@@ -237,11 +245,11 @@ static int load_tileset(struct level *lvl, struct ts_node *tsn)
 	return 0;
 }
 
-struct tile *find_level_tile(struct level *lvl, const char *tname)
+struct tile *find_level_tile(struct level *lvl, int type)
 {
 	struct tile *tile = lvl->tiles;
 	while(tile) {
-		if(strcmp(tile->name, tname) == 0) {
+		if(tile->type == type) {
 			return tile;
 		}
 		tile = tile->next;
@@ -257,9 +265,7 @@ int gen_cell_geom(struct level *lvl, struct cell *cell)
 	struct mesh *mesh, *tmesh;
 	float xform[16];
 
-	printf("foo!\n");
-
-	if(!(tstr = find_level_tile(lvl, "straight"))) {
+	if(!(tstr = find_level_tile(lvl, TILE_STRAIGHT))) {
 		return -1;
 	}
 
@@ -318,6 +324,7 @@ int gen_level_geom(struct level *lvl)
 			cell = lvl->cells + i * lvl->width + j;
 			if(cell->type != CELL_SOLID) {
 				if(gen_cell_geom(lvl, cell) == -1) {
+					printf("failed to generate cell\n");
 					return -1;
 				}
 			}
