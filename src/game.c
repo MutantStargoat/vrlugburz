@@ -51,8 +51,6 @@ int game_init(void)
 	player.cx = lvl.px;
 	player.cy = lvl.py;
 
-	printf("start pos: %d,%d\n", player.cx, player.cy);
-
 	return 0;
 }
 
@@ -62,8 +60,38 @@ void game_shutdown(void)
 	free_program(sdr_foo);
 }
 
+#define STEP_INTERVAL	1000
+
+void update(float dt)
+{
+	static long prev_step;
+	int step[][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+
+	cgm_vec3 vdir = {0, 0, -1};
+
+	upd_player_xform(&player);
+	cgm_vmul_m3v3(&vdir, player.view_xform);
+
+	player.dir = (int)(2.0f * (atan2(vdir.z, vdir.x) + M_PI) / M_PI + 0.5f);
+
+	/*
+	if(time_msec - prev_step >= STEP_INTERVAL) {
+		if(input[INP_FWD]) {
+		}
+	}
+	*/
+}
+
 void game_display(void)
 {
+	float dt;
+	static long prev_msec;
+
+	dt = (prev_msec - time_msec) / 1000.0f;
+	prev_msec = time_msec;
+
+	update(dt);
+
 	glClearColor(0.1, 0.1, 0.1, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -72,7 +100,6 @@ void game_display(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_matrix);
 
-	upd_player_xform(&player);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(player.view_xform);
 

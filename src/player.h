@@ -13,6 +13,7 @@ struct player {
 	cgm_vec3 vpos;		/* VR position within the cell */
 	cgm_quat vrot;		/* VR orientation */
 
+	int dir;			/* cardinal direction, clockwise, 0 is west */
 	float height;
 
 	/* view matrix, derived from all of the above by upd_player_xform */
