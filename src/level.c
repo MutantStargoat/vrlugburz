@@ -19,6 +19,7 @@ int init_level(struct level *lvl, int xsz, int ysz)
 	lvl->width = xsz;
 	lvl->height = ysz;
 	lvl->cell_size = DEF_CELL_SIZE;
+	lvl->px = lvl->py = -1;
 	return 0;
 }
 
@@ -36,13 +37,6 @@ int load_level(struct level *lvl, const char *fname)
 	int i, j, sz, cx, cy;
 	struct cell *cell;
 	float *vecptr;
-
-	lvl->fname = strdup(fname);
-	if((lvl->dirname = malloc(strlen(fname) + 1))) {
-#ifndef LEVEL_EDITOR
-		path_dir(lvl->fname, lvl->dirname);
-#endif
-	}
 
 	if(!(ts = ts_load(fname))) {
 		fprintf(stderr, "failed to load level: %s\n", fname);
@@ -63,6 +57,14 @@ int load_level(struct level *lvl, const char *fname)
 		ts_free_tree(ts);
 		return -1;
 	}
+
+	lvl->fname = strdup(fname);
+	if((lvl->dirname = malloc(strlen(fname) + 1))) {
+#ifndef LEVEL_EDITOR
+		path_dir(lvl->fname, lvl->dirname);
+#endif
+	}
+
 	lvl->cell_size = ts_get_attr_num(ts, "cellsize", DEF_CELL_SIZE);
 
 	if((vecptr = ts_get_attr_vec(ts, "player", 0))) {
@@ -146,6 +148,20 @@ int save_level(struct level *lvl, const char *fname)
 	}
 	ts_set_valuei(&attr->val, lvl->width);
 	ts_add_attr(root, attr);
+
+	if(lvl->cell_size && (attr = ts_alloc_attr())) {
+		ts_set_attr_name(attr, "cellsize");
+		ts_set_valuef(&attr->val, lvl->cell_size);
+		ts_add_attr(root, attr);
+	}
+
+	if(lvl->px >= 0 && lvl->px < lvl->width && lvl->py >= 0 && lvl->py < lvl->height) {
+		if((attr = ts_alloc_attr())) {
+			ts_set_attr_name(attr, "player");
+			ts_set_valueiv(&attr->val, 2, lvl->px, lvl->py);
+			ts_add_attr(root, attr);
+		}
+	}
 
 	for(i=0; i<lvl->height; i++) {
 		for(j=0; j<lvl->width; j++) {

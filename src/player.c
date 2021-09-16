@@ -15,7 +15,7 @@ void upd_player_xform(struct player *p)
 	cgm_vec3 pos;
 	float celld = p->lvl ? p->lvl->cell_size : DEF_CELL_SIZE;
 
-	cgm_vcons(&pos, p->cx * celld, p->height, p->cy * celld);
+	cgm_vcons(&pos, p->cx * celld, p->height, -p->cy * celld);
 	cgm_vadd(&pos, &p->cpos);
 
 	cgm_midentity(p->view_xform);

@@ -6,6 +6,7 @@
 #include <drawtext.h>
 #include "level.h"
 #include "lview.h"
+#include "app.h"
 
 static int init(void);
 static void cleanup(void);
@@ -24,6 +25,8 @@ static void cb_save(utk_event *ev, void *data);
 static void cb_save_ok(utk_event *ev, void *data);
 
 static void cb_cancel(utk_event *ev, void *data);
+
+static void cb_toolselect(utk_event *ev, void *data);
 
 static int parse_args(int argc, char **argv);
 
@@ -127,6 +130,9 @@ static int init(void)
 	utk_button(win, "New", 0, 0, cb_new, 0);
 	utk_button(win, "Open ...", 0, 0, cb_open, 0);
 	utk_button(win, "Save ...", 0, 0, cb_save, 0);
+	utk_label(win, "-- Tools --");
+	utk_radiobox(win, "Draw", 1, cb_toolselect, (void*)TOOL_DRAW);
+	utk_radiobox(win, "Player start", 0, cb_toolselect, (void*)TOOL_PSTART);
 
 	uiwin_new = utk_window(uiroot, (win_width - 220) / 2, (win_height - 150) / 2,
 			220, 150, "New level");
@@ -405,6 +411,14 @@ static void cb_cancel(utk_event *ev, void *data)
 		utk_hide(data);
 	}
 	uigrab = 0;
+}
+
+static void cb_toolselect(utk_event *ev, void *data)
+{
+	utk_widget *w = utk_event_widget(ev);
+	if(utk_is_checked(w)) {
+		tool = (intptr_t)data;
+	}
 }
 
 static int parse_args(int argc, char **argv)

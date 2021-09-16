@@ -18,7 +18,7 @@ float win_aspect;
 int mouse_x, mouse_y;
 int bnstate[8];
 
-float cam_dist = 10;
+float cam_dist;
 float view_matrix[16], proj_matrix[16];
 
 unsigned int sdr_foo;
@@ -60,26 +60,51 @@ void game_shutdown(void)
 	free_program(sdr_foo);
 }
 
-#define STEP_INTERVAL	1000
+#define STEP_INTERVAL	128
 
 void update(float dt)
 {
 	static long prev_step;
-	int step[][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+	int dir;
+	int step[][2] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
 
 	cgm_vec3 vdir = {0, 0, -1};
 
-	upd_player_xform(&player);
 	cgm_vmul_m3v3(&vdir, player.view_xform);
 
-	player.dir = (int)(2.0f * (atan2(vdir.z, vdir.x) + M_PI) / M_PI + 0.5f);
+	player.dir = (int)(2.0f * (-atan2(vdir.z, vdir.x) + M_PI) / M_PI + 0.5f) & 3;
 
-	/*
 	if(time_msec - prev_step >= STEP_INTERVAL) {
-		if(input[INP_FWD]) {
+		if(input_state[INP_FWD]) {
+			player.cx += step[player.dir][0];
+			player.cy += step[player.dir][1];
+			prev_step = time_msec;
+			printf("step[%d] %d,%d\n", player.dir, player.cx, player.cy);
 		}
+		if(input_state[INP_BACK]) {
+			player.cx -= step[player.dir][0];
+			player.cy -= step[player.dir][1];
+			prev_step = time_msec;
+			printf("step[%d] %d,%d\n", player.dir, player.cx, player.cy);
+		}
+		if(input_state[INP_LEFT]) {
+			dir = (player.dir + 3) & 3;
+			player.cx += step[dir][0];
+			player.cy += step[dir][1];
+			prev_step = time_msec;
+			printf("step[%d] %d,%d\n", player.dir, player.cx, player.cy);
+		}
+		if(input_state[INP_RIGHT]) {
+			dir = (player.dir + 1) & 3;
+			player.cx += step[dir][0];
+			player.cy += step[dir][1];
+			prev_step = time_msec;
+			printf("step[%d] %d,%d\n", player.dir, player.cx, player.cy);
+		}
+		memset(input_state, 0, sizeof input_state);
 	}
-	*/
+
+	upd_player_xform(&player);
 }
 
 void game_display(void)
@@ -101,7 +126,9 @@ void game_display(void)
 	glLoadMatrixf(proj_matrix);
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(player.view_xform);
+	glLoadIdentity();
+	glTranslatef(0, 0, -cam_dist);
+	glMultMatrixf(player.view_xform);
 
 	draw_level();
 
@@ -120,7 +147,7 @@ static void draw_level(void)
 	cell = lvl.cells;
 	for(i=0; i<lvl.height; i++) {
 		for(j=0; j<lvl.width; j++) {
-			cgm_mtranslation(xform, j * lvl.cell_size, 0, i * lvl.cell_size);
+			cgm_mtranslation(xform, j * lvl.cell_size, 0, -i * lvl.cell_size);
 
 			glPushMatrix();
 			glMultMatrixf(xform);
@@ -150,6 +177,24 @@ void game_keyboard(int key, int press)
 	if(press && key == 27) {
 		game_quit();
 		return;
+	}
+
+	switch(key) {
+	case 'w':
+		input_state[INP_FWD] = press;
+		break;
+
+	case 'a':
+		input_state[INP_LEFT] = press;
+		break;
+
+	case 's':
+		input_state[INP_BACK] = press;
+		break;
+
+	case 'd':
+		input_state[INP_RIGHT] = press;
+		break;
 	}
 }
 

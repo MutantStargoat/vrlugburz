@@ -3,7 +3,7 @@ obj = $(src:.c=.o)
 dep = $(src:.c=.d)
 bin = dunger
 
-CFLAGS = -pedantic -Wall -g -DLEVEL_EDITOR -I../../src
+CFLAGS = -pedantic -Wall -g -DLEVEL_EDITOR -I../../src -fcommon
 LDFLAGS = -lGL -lGLU -lglut -lutk -ldrawtext -ltreestore
 
 $(bin): $(obj)

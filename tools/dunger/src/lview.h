@@ -18,5 +18,6 @@ void draw_lview(void);
 
 void cell_to_pos(int cx, int cy, float *px, float *py);
 struct cell *pos_to_cell(float px, float py, int *cx, int *cy);
+void cell_coords(struct cell *cell, int *col, int *row);
 
 #endif	/* LVIEW_H_ */

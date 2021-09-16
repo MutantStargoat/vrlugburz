@@ -2,6 +2,17 @@
 #define GAME_H_
 
 enum {
+	INP_LEFT,
+	INP_RIGHT,
+	INP_FWD,
+	INP_BACK,
+	INP_LTURN,
+	INP_RTURN,
+
+	MAX_INP
+};
+
+enum {
 	KEY_LEFT = 256,
 	KEY_RIGHT,
 	KEY_UP,
@@ -11,6 +22,7 @@ enum {
 };
 
 long time_msec;
+int input_state[MAX_INP];
 
 int game_init(void);
 void game_shutdown(void);
