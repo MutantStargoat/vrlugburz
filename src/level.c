@@ -109,16 +109,16 @@ int load_level(struct level *lvl, const char *fname)
 			node = (struct ts_node*)cell->next;
 			cell->next = 0;
 
-			if(j <= 0 || cell[-1].type == CELL_SOLID) {
+			if(i >= lvl->height - 1 || cell[lvl->width].type == CELL_SOLID) {
 				cell->wall[0] = TILE_STRAIGHT;
 			}
-			if(i <= 0 || cell[-lvl->width].type == CELL_SOLID) {
+			if(j >= lvl->width - 1 || cell[1].type == CELL_SOLID) {
 				cell->wall[1] = TILE_STRAIGHT;
 			}
-			if(j >= lvl->width - 1 || cell[1].type == CELL_SOLID) {
+			if(i <= 0 || cell[-lvl->width].type == CELL_SOLID) {
 				cell->wall[2] = TILE_STRAIGHT;
 			}
-			if(i >= lvl->height - 1 || cell[lvl->width].type == CELL_SOLID) {
+			if(j <= 0 || cell[-1].type == CELL_SOLID) {
 				cell->wall[3] = TILE_STRAIGHT;
 			}
 

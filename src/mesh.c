@@ -302,7 +302,7 @@ static int update_mesh_vbo(struct mesh *m)
 
 static int update_meshgroup_vbo(struct meshgroup *mg)
 {
-	int i;
+	int i, j, idx0 = 0;
 	struct vertex *varr, *vptr;
 	unsigned int *iarr = 0, *iptr;
 	struct mesh *m;
@@ -337,8 +337,10 @@ static int update_meshgroup_vbo(struct meshgroup *mg)
 		vptr += m->num_verts;
 
 		if(iarr) {
-			memcpy(iptr, m->iarr, m->num_idx * sizeof *iptr);
-			iptr += m->num_idx;
+			for(j=0; j<m->num_idx; j++) {
+				*iptr++ = m->iarr[j] + idx0;
+			}
+			idx0 += m->num_idx;
 		}
 	}
 
