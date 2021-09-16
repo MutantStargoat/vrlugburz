@@ -57,6 +57,8 @@ static utk_widget *cbox_newsz;
 
 static struct level lvl;
 
+static const char *opt_fname;
+
 
 int main(int argc, char **argv)
 {
@@ -141,9 +143,16 @@ static int init(void)
 	utk_set_size(uiwin_new, utk_get_width(vbox) + pad * 2.0f, utk_get_height(vbox) + pad * 2.0f);
 
 
-	if(init_level(&lvl, 32, 32) == -1) {
-		fprintf(stderr, "failed to create level\n");
-		return -1;
+	if(opt_fname) {
+		if(load_level(&lvl, opt_fname) == -1) {
+			fprintf(stderr, "failed to load level: %s\n", opt_fname);
+			return -1;
+		}
+	} else {
+		if(init_level(&lvl, 32, 32) == -1) {
+			fprintf(stderr, "failed to create level\n");
+			return -1;
+		}
 	}
 	if(init_lview(&lvl) == -1) {
 		return -1;
@@ -420,8 +429,11 @@ static int parse_args(int argc, char **argv)
 				return -1;
 			}
 		} else {
-			fprintf(stderr, "unexpected argument: %s\n", argv[i]);
-			return -1;
+			if(opt_fname) {
+				fprintf(stderr, "unexpected argument: %s\n", argv[i]);
+				return -1;
+			}
+			opt_fname = argv[i];
 		}
 	}
 	return 0;

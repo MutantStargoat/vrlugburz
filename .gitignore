@@ -8,3 +8,4 @@ tools/dunger/dunger
 data/
 datasrc/
 game
+tools/dunger/src/level.c

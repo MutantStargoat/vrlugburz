@@ -1,4 +1,5 @@
 #include <GL/gl.h>
+#include <drawtext.h>
 #include "lview.h"
 
 static struct level *lvl;
@@ -129,6 +130,21 @@ void draw_lview(void)
 	}
 	glEnd();
 
+	if(sel) {
+		int cidx = sel - lvl->cells;
+		int row = cidx / lvl->width;
+		int col = cidx % lvl->width;
+
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glTranslatef(10, 10, 0);
+
+		glColor3f(1, 1, 1);
+		dtx_printf("(%d, %d)", col, row);
+		dtx_flush();
+
+		glPopMatrix();
+	}
 }
 
 void cell_to_pos(int cx, int cy, float *px, float *py)

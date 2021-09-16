@@ -10,6 +10,8 @@ static int load_tileset(struct level *lvl, struct ts_node *tsn);
 
 int init_level(struct level *lvl, int xsz, int ysz)
 {
+	memset(lvl, 0, sizeof *lvl);
+
 	if(!(lvl->cells = calloc(xsz * ysz, sizeof *lvl->cells))) {
 		free(lvl);
 		return -1;
@@ -37,7 +39,9 @@ int load_level(struct level *lvl, const char *fname)
 
 	lvl->fname = strdup(fname);
 	if((lvl->dirname = malloc(strlen(fname) + 1))) {
+#ifndef LEVEL_EDITOR
 		path_dir(lvl->fname, lvl->dirname);
+#endif
 	}
 
 	if(!(ts = ts_load(fname))) {
@@ -192,6 +196,8 @@ err:
 	return -1;
 }
 
+#ifndef LEVEL_EDITOR
+
 static int load_tileset(struct level *lvl, struct ts_node *tsn)
 {
 	static const char *tile_types[] = {"empty", "straight", "corner", "door", 0};
@@ -332,3 +338,12 @@ int gen_level_geom(struct level *lvl)
 	}
 	return 0;
 }
+
+#else
+
+static int load_tileset(struct level *lvl, struct ts_node *tsn)
+{
+	return 0;		/* in the level editor we don't need tileset loading */
+}
+
+#endif	/* !LEVEL_EDITOR */
