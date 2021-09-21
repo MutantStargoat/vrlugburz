@@ -2,6 +2,7 @@
 #define LEVEL_H_
 
 #include "scenefile.h"
+#include "tileset.h"
 
 #define DEF_CELL_SIZE	3.0f
 

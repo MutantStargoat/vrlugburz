@@ -39,6 +39,8 @@ struct material {
 };
 
 struct mesh {
+	char *name;
+
 	struct vertex *varr;
 	unsigned int *iarr;
 	int num_verts, num_idx;

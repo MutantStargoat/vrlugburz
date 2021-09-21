@@ -4,9 +4,8 @@
 #include <errno.h>
 #include <treestore.h>
 #include "level.h"
+#include "tileset.h"
 #include "fs.h"
-
-static int load_tileset(struct level *lvl, struct ts_node *tsn);
 
 int init_level(struct level *lvl, int xsz, int ysz)
 {
@@ -78,7 +77,7 @@ int load_level(struct level *lvl, const char *fname)
 		iter = iter->next;
 
 		if(strcmp(node->name, "tileset") == 0) {
-			load_tileset(lvl, node);
+			/* TODO */
 
 		} else if(strcmp(node->name, "cell") == 0) {
 			cx = ts_get_attr_int(node, "x", -1);
@@ -109,18 +108,20 @@ int load_level(struct level *lvl, const char *fname)
 			node = (struct ts_node*)cell->next;
 			cell->next = 0;
 
+			/*
 			if(i >= lvl->height - 1 || cell[lvl->width].type == CELL_SOLID) {
-				cell->wall[0] = TILE_STRAIGHT;
+				cell->wall[0] = TILE_STR;
 			}
 			if(j >= lvl->width - 1 || cell[1].type == CELL_SOLID) {
-				cell->wall[1] = TILE_STRAIGHT;
+				cell->wall[1] = TILE_STR;
 			}
 			if(i <= 0 || cell[-lvl->width].type == CELL_SOLID) {
-				cell->wall[2] = TILE_STRAIGHT;
+				cell->wall[2] = TILE_STR;
 			}
 			if(j <= 0 || cell[-1].type == CELL_SOLID) {
-				cell->wall[3] = TILE_STRAIGHT;
+				cell->wall[3] = TILE_STR;
 			}
+			*/
 
 			cell++;
 		}
@@ -214,82 +215,16 @@ err:
 
 #ifndef LEVEL_EDITOR
 
-static int load_tileset(struct level *lvl, struct ts_node *tsn)
-{
-	static const char *tile_types[] = {
-		"open", "straight", "corner", "tee", "cross", "str2open", 0
-	};
-
-	int i;
-	char *path;
-	const char *str;
-	struct ts_node *node;
-	struct tile *tile;
-
-	node = tsn->child_list;
-	while(node) {
-		if(strcmp(node->name, "tile") == 0) {
-			if(!(tile = calloc(1, sizeof *tile))) {
-				fprintf(stderr, "failed to allocate tile\n");
-				return -1;
-			}
-			if((str = ts_get_attr_str(node, "name", 0))) {
-				tile->name = strdup(str);
-			}
-			if((str = ts_get_attr_str(node, "type", 0))) {
-				for(i=0; tile_types[i]; i++) {
-					if(strcmp(str, tile_types[i]) == 0) {
-						tile->type = i;
-						break;
-					}
-				}
-			}
-			if((str = ts_get_attr_str(node, "scene", 0))) {
-				if(lvl->dirname) {
-					path = alloca(strlen(lvl->dirname) + strlen(str) + 2);
-					combine_path(lvl->dirname, str, path);
-				} else {
-					path = (char*)str;
-				}
-				load_scenefile(&tile->scn, path);
-			}
-
-			if(tile->name && tile->scn.meshlist) {	/* valid tile */
-				tile->next = lvl->tiles;
-				lvl->tiles = tile;
-			} else {
-				fprintf(stderr, "load_tileset: skipping invalid tile: %s\n",
-						tile->name ? tile->name : "missing tile name");
-				free(tile);
-			}
-		}
-		node = node->next;
-	}
-
-	return 0;
-}
-
-struct tile *find_level_tile(struct level *lvl, int type)
-{
-	struct tile *tile = lvl->tiles;
-	while(tile) {
-		if(tile->type == type) {
-			return tile;
-		}
-		tile = tile->next;
-	}
-	return 0;
-}
-
 int gen_cell_geom(struct level *lvl, struct cell *cell)
 {
+#if 0
 	int i;
 	struct meshgroup *wallgeom;
 	struct tile *tstr;
 	struct mesh *mesh, *tmesh;
 	float xform[16];
 
-	if(!(tstr = find_level_tile(lvl, TILE_STRAIGHT))) {
+	if(!(tstr = find_level_tile(lvl, TILE_STR))) {
 		return -1;
 	}
 
@@ -299,7 +234,7 @@ int gen_cell_geom(struct level *lvl, struct cell *cell)
 	init_meshgroup(wallgeom);
 
 	for(i=0; i<4; i++) {
-		if(cell->wall[i] == TILE_STRAIGHT) {	/* TODO: support other wall types */
+		if(cell->wall[i] == TILE_STR) {	/* TODO: support other wall types */
 			cgm_mrotation_y(xform, i * M_PI / 2.0f);
 
 			tmesh = tstr->scn.meshlist;
@@ -334,7 +269,7 @@ int gen_cell_geom(struct level *lvl, struct cell *cell)
 	/* TODO: append to other existing meshgroups for detail objects */
 	cell->mgrp = wallgeom;
 	cell->num_mgrp = 1;
-
+#endif
 	return 0;
 }
 
@@ -355,13 +290,6 @@ int gen_level_geom(struct level *lvl)
 		}
 	}
 	return 0;
-}
-
-#else
-
-static int load_tileset(struct level *lvl, struct ts_node *tsn)
-{
-	return 0;		/* in the level editor we don't need tileset loading */
 }
 
 #endif	/* !LEVEL_EDITOR */

@@ -5,12 +5,14 @@
 #include "treestore.h"
 #include "tileset.h"
 #include "level.h"
+#include "fs.h"
 
 int load_tileset(struct tileset *tset, const char *fname)
 {
-	struct ts_node *ts, *node;
+	struct ts_node *ts, *node, *iter;
 	const char *str;
 	char *path;
+	struct mesh *mesh;
 
 	if(!(ts = ts_load(fname))) {
 		fprintf(stderr, "failed to load tileset: %s\n", fname);
@@ -38,4 +40,22 @@ int load_tileset(struct tileset *tset, const char *fname)
 	}
 
 	tset->name = strdup(ts_get_attr_str(ts, "name", fname));
+
+	iter = ts->child_list;
+	while(node) {
+		node = iter;
+		iter = iter->next;
+		if(strcmp(node->name, "tile") == 0) {
+			if(!(str = ts_get_attr_str(node, "prefix", 0))) {
+				continue;
+			}
+			if(!(mesh = find_mesh_prefix(&tset->scn, str))) {
+				fprintf(stderr, "load_tileset: failed to find mesh with prefix: %s\n", str);
+				continue;
+			}
+			/* TOOD cont */
+		}
+	}
+
+	return 0;
 }

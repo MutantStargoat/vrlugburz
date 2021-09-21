@@ -16,6 +16,7 @@ void init_mesh(struct mesh *m)
 
 void destroy_mesh(struct mesh *m)
 {
+	free(m->name);
 	free(m->varr);
 	free(m->iarr);
 
@@ -29,9 +30,11 @@ void destroy_mesh(struct mesh *m)
 
 void clear_mesh(struct mesh *m)
 {
+	free(m->name);
 	free(m->varr);
 	free(m->iarr);
 
+	m->name = 0;
 	m->varr = 0;
 	m->iarr = 0;
 	m->num_verts = m->max_verts = m->num_idx = m->max_idx = 0;
@@ -42,6 +45,10 @@ void clear_mesh(struct mesh *m)
 int copy_mesh(struct mesh *dest, struct mesh *src)
 {
 	init_mesh(dest);
+
+	if(src->name) {
+		dest->name = strdup(src->name);
+	}
 
 	if(src->max_verts && !(dest->varr = malloc(src->max_verts * sizeof *dest->varr))) {
 		return -1;

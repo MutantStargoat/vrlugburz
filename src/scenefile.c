@@ -170,6 +170,7 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 					goto fail;
 				}
 				init_mesh(mesh);
+				mesh->name = strdup(cleanline(line + 2));
 			}
 			break;
 
@@ -270,6 +271,19 @@ void destroy_scenefile(struct scenefile *scn)
 		scn->meshlist = scn->meshlist->next;
 		free(m);
 	}
+}
+
+struct mesh *find_mesh_prefix(struct scenefile *scn, const char *prefix)
+{
+	int len = strlen(prefix);
+	struct mesh *m = scn->meshlist;
+	while(m) {
+		if(m->name && memcmp(m->name, prefix, len) == 0) {
+			return m;
+		}
+		m = m->next;
+	}
+	return 0;
 }
 
 static char *cleanline(char *s)
