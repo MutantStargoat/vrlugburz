@@ -2,10 +2,11 @@
 
 mkdir -p data/tex
 
+cp datasrc/test.tileset data
 cp datasrc/test.lvl data
 
-cp datasrc/dwall1.obj data
-cp datasrc/dwall1.mtl data
+cp datasrc/walls.obj data
+cp datasrc/walls.mtl data
 cp datasrc/tex/sfloor_norm.png data/tex
 cp datasrc/tex/sfloor1b_diff.jpg data/tex
 cp datasrc/tex/sfloor1b_spec.jpg data/tex

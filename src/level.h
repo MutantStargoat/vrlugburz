@@ -6,10 +6,12 @@
 #define DEF_CELL_SIZE	3.0f
 
 enum {
-	TILE_EMPTY,
-	TILE_STRAIGHT,
+	TILE_OPEN,
+	TILE_STR,
 	TILE_CORNER,
-	TILE_DOOR
+	TILE_TEE,
+	TILE_CROSS,
+	TILE_STR2OPEN
 };
 
 enum {
@@ -21,7 +23,6 @@ enum {
 struct tile {
 	char *name;
 	int type;
-	struct scenefile scn;
 	struct tile *next;
 };
 
@@ -44,7 +45,7 @@ struct level {
 	float cell_size;
 	struct cell *cells;
 
-	struct tile *tiles;
+	struct tileset *tset;
 
 	/* meshes owned by the level, constructed during geometry generation or
 	 * loaded, excluding meshes in tiles scenefiles

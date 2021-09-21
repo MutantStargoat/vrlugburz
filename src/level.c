@@ -216,7 +216,9 @@ err:
 
 static int load_tileset(struct level *lvl, struct ts_node *tsn)
 {
-	static const char *tile_types[] = {"empty", "straight", "corner", "door", 0};
+	static const char *tile_types[] = {
+		"open", "straight", "corner", "tee", "cross", "str2open", 0
+	};
 
 	int i;
 	char *path;
