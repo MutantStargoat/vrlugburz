@@ -40,6 +40,7 @@ int load_level(struct level *lvl, const char *fname)
 	struct cell *cell;
 	float *vecptr;
 	const char *str;
+	char *tset_path;
 
 	if(!(ts = ts_load(fname))) {
 		fprintf(stderr, "failed to load level: %s\n", fname);
@@ -63,9 +64,7 @@ int load_level(struct level *lvl, const char *fname)
 
 	lvl->fname = strdup(fname);
 	if((lvl->dirname = malloc(strlen(fname) + 1))) {
-#ifndef LEVEL_EDITOR
 		path_dir(lvl->fname, lvl->dirname);
-#endif
 	}
 
 	lvl->cell_size = ts_get_attr_num(ts, "cellsize", DEF_CELL_SIZE);
@@ -76,7 +75,9 @@ int load_level(struct level *lvl, const char *fname)
 	}
 
 	if((str = ts_get_attr_str(ts, "tileset", 0))) {
-		lvl->tset = get_tileset(str);
+		tset_path = alloca(strlen(str) + strlen(lvl->dirname) + 2);
+		combine_path(lvl->dirname, str, tset_path);
+		lvl->tset = get_tileset(tset_path);
 	}
 
 	iter = ts->child_list;
@@ -115,8 +116,9 @@ int load_level(struct level *lvl, const char *fname)
 				tiletype = detect_cell_tile(lvl, j, i, &cell->tilerot);
 			}
 
-			cell->tile = get_tile(lvl->tset, tiletype);
-
+			if(lvl->tset) {
+				cell->tile = get_tile(lvl->tset, tiletype);
+			}
 			cell++;
 		}
 	}

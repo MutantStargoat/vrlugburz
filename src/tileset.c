@@ -14,7 +14,7 @@ static struct tileset *tset_list;
 int load_tileset(struct tileset *tset, const char *fname)
 {
 	struct ts_node *ts, *node, *iter;
-	const char *str;
+	const char *str, *prefix;
 	char *path;
 	struct mesh *mesh;
 	struct tile *tile;
@@ -37,7 +37,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 		return -1;
 	}
 	path = alloca(strlen(fname) + strlen(str) + 2);
-	path_dir(str, path);
+	path_dir(fname, path);
 	combine_path(path, str, path);
 
 	if(load_scenefile(&tset->scn, path) == -1) {
@@ -50,16 +50,20 @@ int load_tileset(struct tileset *tset, const char *fname)
 	tset->name = strdup(ts_get_attr_str(ts, "name", fname));
 
 	iter = ts->child_list;
-	while(node) {
+	while(iter) {
 		node = iter;
 		iter = iter->next;
 		if(strcmp(node->name, "tile") == 0) {
-			if(!(str = ts_get_attr_str(node, "prefix", 0))) {
+			if(!(prefix = ts_get_attr_str(node, "prefix", 0))) {
 				continue;
 			}
 
-			if((type = tile_type(ts_get_attr_str(node, "type", 0))) == -1) {
-				fprintf(stderr, "load_tileset: missing or invalid tile type\n");
+			if(!(str = ts_get_attr_str(node, "type", 0))) {
+				fprintf(stderr, "load_tileset: missing tile type\n");
+				continue;
+			}
+			if((type = tile_type(str)) == -1) {
+				fprintf(stderr, "load_tileset: invalid tile type: %s\n", str);
 				continue;
 			}
 
@@ -78,7 +82,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 
 			mesh = tset->scn.meshlist;
 			while(mesh) {
-				if(match_prefix(mesh->name, str)) {
+				if(mesh->name && match_prefix(mesh->name, prefix)) {
 					if(vec) {
 						xform_mesh(mesh, xform);
 					}
@@ -86,6 +90,9 @@ int load_tileset(struct tileset *tset, const char *fname)
 				}
 				mesh = mesh->next;
 			}
+
+			tile->next = tset->tiles;
+			tset->tiles = tile;
 		}
 	}
 
