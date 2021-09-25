@@ -7,6 +7,9 @@
 #include "tileset.h"
 #include "fs.h"
 
+static int detect_cell_tile(struct level *lvl, int x, int y, int *rot);
+
+
 int init_level(struct level *lvl, int xsz, int ysz)
 {
 	memset(lvl, 0, sizeof *lvl);
@@ -33,9 +36,10 @@ void destroy_level(struct level *lvl)
 int load_level(struct level *lvl, const char *fname)
 {
 	struct ts_node *ts, *node, *iter;
-	int i, j, sz, cx, cy;
+	int i, j, sz, cx, cy, tiletype;
 	struct cell *cell;
 	float *vecptr;
+	const char *str;
 
 	if(!(ts = ts_load(fname))) {
 		fprintf(stderr, "failed to load level: %s\n", fname);
@@ -71,15 +75,16 @@ int load_level(struct level *lvl, const char *fname)
 		lvl->py = vecptr[1];
 	}
 
+	if((str = ts_get_attr_str(ts, "tileset", 0))) {
+		lvl->tset = get_tileset(str);
+	}
+
 	iter = ts->child_list;
 	while(iter) {
 		node = iter;
 		iter = iter->next;
 
-		if(strcmp(node->name, "tileset") == 0) {
-			/* TODO */
-
-		} else if(strcmp(node->name, "cell") == 0) {
+		if(strcmp(node->name, "cell") == 0) {
 			cx = ts_get_attr_int(node, "x", -1);
 			cy = ts_get_attr_int(node, "y", -1);
 			if(cx < 0 || cy < 0 || cx >= sz || cy >= sz) {
@@ -94,7 +99,6 @@ int load_level(struct level *lvl, const char *fname)
 		}
 	}
 
-	/* assign wall types to all occupied cells */
 	cell = lvl->cells;
 	for(i=0; i<lvl->height; i++) {
 		for(j=0; j<lvl->width; j++) {
@@ -103,25 +107,15 @@ int load_level(struct level *lvl, const char *fname)
 				continue;
 			}
 
-			/* TODO take wall choice from the level file into account */
-			/* TODO detect corners */
 			node = (struct ts_node*)cell->next;
 			cell->next = 0;
 
-			/*
-			if(i >= lvl->height - 1 || cell[lvl->width].type == CELL_SOLID) {
-				cell->wall[0] = TILE_STR;
+			if((tiletype = tile_type(ts_get_attr_str(node, "tiletype", 0))) == -1) {
+				/* no tile-type specified, try to guess */
+				tiletype = detect_cell_tile(lvl, j, i, &cell->tilerot);
 			}
-			if(j >= lvl->width - 1 || cell[1].type == CELL_SOLID) {
-				cell->wall[1] = TILE_STR;
-			}
-			if(i <= 0 || cell[-lvl->width].type == CELL_SOLID) {
-				cell->wall[2] = TILE_STR;
-			}
-			if(j <= 0 || cell[-1].type == CELL_SOLID) {
-				cell->wall[3] = TILE_STR;
-			}
-			*/
+
+			cell->tile = get_tile(lvl->tset, tiletype);
 
 			cell++;
 		}
@@ -215,81 +209,104 @@ err:
 
 #ifndef LEVEL_EDITOR
 
-int gen_cell_geom(struct level *lvl, struct cell *cell)
+static int get_cell_type(struct level *lvl, int x, int y)
 {
-#if 0
-	int i;
-	struct meshgroup *wallgeom;
-	struct tile *tstr;
-	struct mesh *mesh, *tmesh;
-	float xform[16];
-
-	if(!(tstr = find_level_tile(lvl, TILE_STR))) {
-		return -1;
+	if(x < 0 || x >= lvl->width || y < 0 || y >= lvl->height) {
+		return CELL_SOLID;
 	}
-
-	if(!(wallgeom = malloc(sizeof *wallgeom))) {
-		return -1;
-	}
-	init_meshgroup(wallgeom);
-
-	for(i=0; i<4; i++) {
-		if(cell->wall[i] == TILE_STR) {	/* TODO: support other wall types */
-			cgm_mrotation_y(xform, i * M_PI / 2.0f);
-
-			tmesh = tstr->scn.meshlist;
-			while(tmesh) {
-				if(!(mesh = malloc(sizeof *mesh))) {
-					return -1;
-				}
-
-				/* create a copy of the tile mesh */
-				if(copy_mesh(mesh, tmesh) == -1) {
-					free(mesh);
-					return -1;
-				}
-				if(i) xform_mesh(mesh, xform);	/* rotate it to match the wall angle */
-
-				/* add it to the level meshlist */
-				mesh->next = lvl->meshlist;
-				lvl->meshlist = mesh;
-
-				/* add it to the meshgroup */
-				if(add_meshgroup_mesh(wallgeom, mesh) == -1) {
-					destroy_mesh(mesh);
-					free(mesh);
-					return -1;
-				}
-
-				tmesh = tmesh->next;
-			}
-		}
-	}
-
-	/* TODO: append to other existing meshgroups for detail objects */
-	cell->mgrp = wallgeom;
-	cell->num_mgrp = 1;
-#endif
-	return 0;
+	return lvl->cells[y * lvl->width + x].type;
 }
 
-int gen_level_geom(struct level *lvl)
+static int detect_cell_tile(struct level *lvl, int x, int y, int *rot)
 {
-	int i, j;
-	struct cell *cell;
+	int i, j, bit;
+	unsigned int adj = 0;
 
-	for(i=0; i<lvl->height; i++) {
-		for(j=0; j<lvl->width; j++) {
-			cell = lvl->cells + i * lvl->width + j;
-			if(cell->type != CELL_SOLID) {
-				if(gen_cell_geom(lvl, cell) == -1) {
-					printf("failed to generate cell\n");
-					return -1;
-				}
+	bit = 0;
+	for(i=0; i<3; i++) {
+		for(j=0; j<3; j++) {
+			if(i == 1 && j == 1) continue;
+			if(get_cell_type(lvl, x + j - 1, y + i - 1) == CELL_SOLID) {
+				adj |= 1 << bit;
 			}
+			bit++;
 		}
 	}
-	return 0;
+
+	*rot = 0;
+
+	switch(adj) {
+	case 0:
+	case 0757:
+		/* really we'd need a separate tile type for "all neighbors solid", but we
+		 * probably never going to need that in practice, so fuck it.
+		 */
+		return TILE_OPEN;
+
+	case 0555:	/* N-S corridor */
+		*rot = 1;
+	case 0707:	/* W-E corridor */
+		return TILE_STR;
+
+	case 0745:	/* S-E corner */
+		*rot = 1;
+	case 0715:	/* S-W corner */
+		return TILE_CORNER;
+	case 0547:	/* N-E corner */
+		*rot = 2;
+		return TILE_CORNER;
+	case 0517:	/* N-W corner */
+		*rot = 3;
+		return TILE_CORNER;
+
+	case 0507:	/* N tee */
+		*rot = 3;
+	case 0515:	/* W tee */
+		return TILE_TEE;
+	case 0705:	/* S tee */
+		*rot = 1;
+		return TILE_TEE;
+	case 0545:	/* E tee */
+		*rot = 2;
+		return TILE_TEE;
+
+	case 0505:	/* cross */
+		return TILE_CROSS;
+
+	case 0700:	/* S stropen */
+	case 0701:
+	case 0704:
+		return TILE_STROPEN;
+	case 0444:	/* E stropen */
+	case 0445:
+	case 0544:
+		*rot = 1;
+		return TILE_STROPEN;
+	case 0007:	/* N stropen */
+	case 0407:
+	case 0107:
+		*rot = 2;
+		return TILE_STROPEN;
+	case 0111:	/* W stropen */
+	case 0511:
+	case 0115:
+		*rot = 3;
+		return TILE_STROPEN;
+
+	case 0404:	/* E str2open */
+		return TILE_STR2OPEN;
+	case 0005:	/* N str2open */
+		*rot = 1;
+		return TILE_STR2OPEN;
+	case 0101:	/* W str2open */
+		*rot = 2;
+		return TILE_STR2OPEN;
+	case 0500:	/* S str2open */
+		*rot = 3;
+		return TILE_STR2OPEN;
+	}
+
+	return TILE_OPEN;
 }
 
 #endif	/* !LEVEL_EDITOR */

@@ -44,7 +44,6 @@ int game_init(void)
 	if(load_level(&lvl, "data/test.lvl") == -1) {
 		return -1;
 	}
-	gen_level_geom(&lvl);
 
 	init_player(&player);
 	player.lvl = &lvl;
@@ -151,6 +150,15 @@ static void draw_level(void)
 
 			glPushMatrix();
 			glMultMatrixf(xform);
+
+			if(cell->tile) {
+				cgm_mrotation_y(xform, cell->tilerot * M_PI / 2.0f);
+
+				glPushMatrix();
+				glMultMatrixf(xform);
+				draw_meshgroup(&cell->tile->mgrp);
+				glPopMatrix();
+			}
 
 			for(k=0; k<cell->num_mgrp; k++) {
 				draw_meshgroup(cell->mgrp + k);

@@ -16,6 +16,4 @@ struct scenefile {
 int load_scenefile(struct scenefile *scn, const char *fname);
 void destroy_scenefile(struct scenefile *scn);
 
-struct mesh *find_mesh_prefix(struct scenefile *scn, const char *prefix);
-
 #endif	/* SCENEFILE_H_ */

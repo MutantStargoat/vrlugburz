@@ -12,7 +12,8 @@ enum {
 	TILE_CORNER,
 	TILE_TEE,
 	TILE_CROSS,
-	TILE_STR2OPEN
+	TILE_STR2OPEN,
+	TILE_STROPEN
 };
 
 enum {
@@ -24,14 +25,19 @@ enum {
 struct tile {
 	char *name;
 	int type;
+
+	struct meshgroup mgrp;
+
 	struct tile *next;
 };
 
 struct cell {
 	int type;
+	int tiletype, tilerot;
 	int wall[4];
 	int floor, ceil;
 
+	struct tile *tile;
 	struct meshgroup *mgrp;
 	int num_mgrp;
 

@@ -7,12 +7,19 @@
 #include "level.h"
 #include "fs.h"
 
+static int match_prefix(const char *str, const char *prefix);
+
+static struct tileset *tset_list;
+
 int load_tileset(struct tileset *tset, const char *fname)
 {
 	struct ts_node *ts, *node, *iter;
 	const char *str;
 	char *path;
 	struct mesh *mesh;
+	struct tile *tile;
+	int type;
+	float xform[16], *vec;
 
 	if(!(ts = ts_load(fname))) {
 		fprintf(stderr, "failed to load tileset: %s\n", fname);
@@ -39,6 +46,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 		return -1;
 	}
 
+	tset->fname = strdup(fname);
 	tset->name = strdup(ts_get_attr_str(ts, "name", fname));
 
 	iter = ts->child_list;
@@ -49,13 +57,129 @@ int load_tileset(struct tileset *tset, const char *fname)
 			if(!(str = ts_get_attr_str(node, "prefix", 0))) {
 				continue;
 			}
-			if(!(mesh = find_mesh_prefix(&tset->scn, str))) {
-				fprintf(stderr, "load_tileset: failed to find mesh with prefix: %s\n", str);
+
+			if((type = tile_type(ts_get_attr_str(node, "type", 0))) == -1) {
+				fprintf(stderr, "load_tileset: missing or invalid tile type\n");
 				continue;
 			}
-			/* TOOD cont */
+
+			if(!(tile = malloc(sizeof *tile))) {
+				fprintf(stderr, "load_tileset: failed to allocate tile\n");
+				continue;
+			}
+			tile->type = type;
+
+			cgm_midentity(xform);
+			if((vec = ts_get_attr_vec(node, "pos", 0))) {
+				cgm_mtranslation(xform, vec[0], vec[1], vec[2]);
+			}
+
+			init_meshgroup(&tile->mgrp);
+
+			mesh = tset->scn.meshlist;
+			while(mesh) {
+				if(match_prefix(mesh->name, str)) {
+					if(vec) {
+						xform_mesh(mesh, xform);
+					}
+					add_meshgroup_mesh(&tile->mgrp, mesh);
+				}
+				mesh = mesh->next;
+			}
 		}
 	}
 
 	return 0;
+}
+
+void destroy_tileset(struct tileset *tset)
+{
+	struct tile *tile;
+
+	free(tset->name);
+	free(tset->fname);
+
+	while(tset->tiles) {
+		tile = tset->tiles;
+		tset->tiles = tile->next;
+
+		free(tile->name);
+		free(tile);
+	}
+
+	destroy_scenefile(&tset->scn);
+}
+
+struct tileset *get_tileset(const char *fname)
+{
+	struct tileset *ts = tset_list;
+	while(ts) {
+		if(strcmp(ts->fname, fname) == 0) {
+			return ts;
+		}
+		ts = ts->next;
+	}
+
+	if(!(ts = malloc(sizeof *ts))) {
+		fprintf(stderr, "failed to allocate tileset\n");
+		return 0;
+	}
+	if(load_tileset(ts, fname) == -1) {
+		free(ts);
+		return 0;
+	}
+	ts->next = tset_list;
+	tset_list = ts;
+	return ts;
+}
+
+void free_all_tilesets(void)
+{
+	struct tileset *ts;
+
+	while(tset_list) {
+		ts = tset_list;
+		tset_list = ts->next;
+		destroy_tileset(ts);
+		free(ts);
+	}
+}
+
+struct tile *get_tile(struct tileset *tset, int ttype)
+{
+	struct tile *tile = tset->tiles;
+	while(tile) {
+		if(tile->type == ttype) {
+			return tile;
+		}
+		tile = tile->next;
+	}
+	return 0;
+}
+
+int tile_type(const char *tstr)
+{
+	static const char *typenames[] = {
+		"open", "straight", "corner", "tee", "cross", "str2open", "stropen", 0
+	};
+	int i;
+
+	if(!tstr) return -1;
+
+	for(i=0; typenames[i]; i++) {
+		if(strcmp(tstr, typenames[i]) == 0) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+static int match_prefix(const char *str, const char *prefix)
+{
+	while(*str && *prefix) {
+		if(*str++ != *prefix++) {
+			return 0;
+		}
+	}
+	return 1;
 }
