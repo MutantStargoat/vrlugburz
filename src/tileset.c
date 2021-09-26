@@ -21,6 +21,8 @@ int load_tileset(struct tileset *tset, const char *fname)
 	int type;
 	float xform[16], *vec;
 
+	memset(tset, 0, sizeof *tset);
+
 	if(!(ts = ts_load(fname))) {
 		fprintf(stderr, "failed to load tileset: %s\n", fname);
 		return -1;
@@ -169,7 +171,7 @@ struct tile *get_tile(struct tileset *tset, int ttype)
 int tile_type(const char *tstr)
 {
 	static const char *typenames[] = {
-		"open", "straight", "corner", "tee", "cross", "str2open", "stropen", 0
+		"open", "straight", "corner", "opencorner", "tee", "cross", "str2open", "stropen", 0
 	};
 	int i;
 

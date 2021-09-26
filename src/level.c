@@ -245,48 +245,58 @@ static int detect_cell_tile(struct level *lvl, int x, int y, int *rot)
 		return TILE_OPEN;
 
 	case 0745:
-	case 0744:
-
 	case 0645:
-	case 0644:
-	case 0740:
 	case 0741:
-	case 0640:
 	case 0641:
 		return TILE_CORNER;
-	case 0715:
-	case 0711:
 
+	case 0744:
+	case 0644:
+	case 0740:
+	case 0640:
+		return TILE_OPENCORNER;
+
+	case 0715:
 	case 0315:
-	case 0311:
-	case 0710:
 	case 0714:
-	case 0310:
 	case 0314:
 		*rot = 1;
 		return TILE_CORNER;
-	case 0547:
-	case 0447:
 
-	case 0047:
+	case 0711:
+	case 0311:
+	case 0710:
+	case 0310:
+		*rot = 1;
+		return TILE_OPENCORNER;
+
+	case 0547:
 	case 0147:
-	case 0446:
 	case 0546:
-	case 0046:
 	case 0146:
 		*rot = 3;
 		return TILE_CORNER;
-	case 0517:
-	case 0117:
 
-	case 0017:
+	case 0447:
+	case 0047:
+	case 0446:
+	case 0046:
+		*rot = 3;
+		return TILE_OPENCORNER;
+
+	case 0517:
 	case 0417:
-	case 0113:
 	case 0513:
-	case 0013:
 	case 0413:
 		*rot = 2;
 		return TILE_CORNER;
+
+	case 0117:
+	case 0017:
+	case 0113:
+	case 0013:
+		*rot = 2;
+		return TILE_OPENCORNER;
 
 	case 0507:	/* N tee */
 		*rot = 3;
