@@ -49,6 +49,8 @@ int load_tileset(struct tileset *tset, const char *fname)
 	tset->fname = strdup(fname);
 	tset->name = strdup(ts_get_attr_str(ts, "name", fname));
 
+	tset->tile_size = ts_get_attr_num(ts, "tilesize", DEF_TILE_SIZE);
+
 	iter = ts->child_list;
 	while(iter) {
 		node = iter;
@@ -75,7 +77,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 
 			cgm_midentity(xform);
 			if((vec = ts_get_attr_vec(node, "pos", 0))) {
-				cgm_mtranslation(xform, vec[0], vec[1], vec[2]);
+				cgm_mtranslation(xform, -vec[0], -vec[1], -vec[2]);
 			}
 
 			init_meshgroup(&tile->mgrp);

@@ -379,8 +379,8 @@ void xform_mesh(struct mesh *mesh, float *mat)
 	mesh->bbvalid = 0;
 
 	for(i=0; i<mesh->num_verts; i++) {
-		cgm_vmul_v3m4(&mesh->varr[i].pos, mat);
-		cgm_vmul_v3m3(&mesh->varr[i].norm, mat);
-		cgm_vmul_v3m3(&mesh->varr[i].tang, mat);
+		cgm_vmul_m4v3(&mesh->varr[i].pos, mat);
+		cgm_vmul_m3v3(&mesh->varr[i].norm, mat);
+		cgm_vmul_m3v3(&mesh->varr[i].tang, mat);
 	}
 }

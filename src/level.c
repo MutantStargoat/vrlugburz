@@ -103,13 +103,13 @@ int load_level(struct level *lvl, const char *fname)
 	cell = lvl->cells;
 	for(i=0; i<lvl->height; i++) {
 		for(j=0; j<lvl->width; j++) {
+			node = (struct ts_node*)cell->next;
+			cell->next = 0;
+
 			if(cell->type == CELL_SOLID) {
 				cell++;
 				continue;
 			}
-
-			node = (struct ts_node*)cell->next;
-			cell->next = 0;
 
 			if((tiletype = tile_type(ts_get_attr_str(node, "tiletype", 0))) == -1) {
 				/* no tile-type specified, try to guess */
@@ -227,7 +227,6 @@ static int detect_cell_tile(struct level *lvl, int x, int y, int *rot)
 	bit = 0;
 	for(i=0; i<3; i++) {
 		for(j=0; j<3; j++) {
-			if(i == 1 && j == 1) continue;
 			if(get_cell_type(lvl, x + j - 1, y + i - 1) == CELL_SOLID) {
 				adj |= 1 << bit;
 			}
@@ -245,55 +244,64 @@ static int detect_cell_tile(struct level *lvl, int x, int y, int *rot)
 		 */
 		return TILE_OPEN;
 
-	case 0555:	/* N-S corridor */
-		*rot = 1;
-	case 0707:	/* W-E corridor */
-		return TILE_STR;
+	case 0745:
+	case 0744:
 
-	case 0745:	/* S-E corner */
+	case 0645:
+	case 0644:
+	case 0740:
+	case 0741:
+	case 0640:
+	case 0641:
+		return TILE_CORNER;
+	case 0715:
+	case 0711:
+
+	case 0315:
+	case 0311:
+	case 0710:
+	case 0714:
+	case 0310:
+	case 0314:
 		*rot = 1;
-	case 0715:	/* S-W corner */
 		return TILE_CORNER;
-	case 0547:	/* N-E corner */
-		*rot = 2;
-		return TILE_CORNER;
-	case 0517:	/* N-W corner */
+	case 0547:
+	case 0447:
+
+	case 0047:
+	case 0147:
+	case 0446:
+	case 0546:
+	case 0046:
+	case 0146:
 		*rot = 3;
+		return TILE_CORNER;
+	case 0517:
+	case 0117:
+
+	case 0017:
+	case 0417:
+	case 0113:
+	case 0513:
+	case 0013:
+	case 0413:
+		*rot = 2;
 		return TILE_CORNER;
 
 	case 0507:	/* N tee */
 		*rot = 3;
+		return TILE_TEE;
 	case 0515:	/* W tee */
+		*rot = 2;
 		return TILE_TEE;
 	case 0705:	/* S tee */
 		*rot = 1;
 		return TILE_TEE;
 	case 0545:	/* E tee */
-		*rot = 2;
 		return TILE_TEE;
 
 	case 0505:	/* cross */
 		return TILE_CROSS;
-
-	case 0700:	/* S stropen */
-	case 0701:
-	case 0704:
-		return TILE_STROPEN;
-	case 0444:	/* E stropen */
-	case 0445:
-	case 0544:
-		*rot = 1;
-		return TILE_STROPEN;
-	case 0007:	/* N stropen */
-	case 0407:
-	case 0107:
-		*rot = 2;
-		return TILE_STROPEN;
-	case 0111:	/* W stropen */
-	case 0511:
-	case 0115:
-		*rot = 3;
-		return TILE_STROPEN;
 
 	case 0404:	/* E str2open */
 		return TILE_STR2OPEN;
@@ -306,6 +314,31 @@ static int detect_cell_tile(struct level *lvl, int x, int y, int *rot)
 	case 0500:	/* S str2open */
 		*rot = 3;
 		return TILE_STR2OPEN;
+
+	default:
+		if((adj & 0222) == 0200) {
+			return TILE_STROPEN;
+		}
+		if((adj & 0222) == 0002) {
+			*rot = 2;
+			return TILE_STROPEN;
+		}
+		if((adj & 0070) == 0040) {
+			*rot = 3;
+			return TILE_STROPEN;
+		}
+		if((adj & 0070) == 0010) {
+			*rot = 1;
+			return TILE_STROPEN;
+		}
+
+		if((adj & 0070) == 0050) {
+			*rot = 1;			/* straight N-S */
+			return TILE_STR;
+		}
+		if((adj & 0202) == 0202) {
+			return TILE_STR;	/* straight E-W */
+		}
 	}
 
 	return TILE_OPEN;

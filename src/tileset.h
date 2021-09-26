@@ -3,10 +3,13 @@
 
 #include "scenefile.h"
 
+#define DEF_TILE_SIZE	3.0f
+
 struct tile;
 
 struct tileset {
 	char *name, *fname;
+	float tile_size;
 
 	struct scenefile scn;	/* scene file containing tile geometry */
 	struct tile *tiles;
