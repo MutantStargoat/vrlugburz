@@ -34,6 +34,8 @@ int main(int argc, char **argv)
 	glutMotionFunc(game_mmotion);
 	glutPassiveMotionFunc(game_mmotion);
 
+	glutIgnoreKeyRepeat(1);
+
 	if(game_init() == -1) {
 		return 1;
 	}

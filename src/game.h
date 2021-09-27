@@ -1,6 +1,8 @@
 #ifndef GAME_H_
 #define GAME_H_
 
+enum { DIR_N, DIR_E, DIR_S, DIR_W };
+
 enum {
 	INP_LEFT,
 	INP_RIGHT,

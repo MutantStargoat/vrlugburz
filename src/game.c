@@ -23,6 +23,8 @@ float view_matrix[16], proj_matrix[16];
 
 unsigned int sdr_foo;
 
+static long prev_step, prev_turn;
+
 int game_init(void)
 {
 	if(init_opengl() == -1) {
@@ -59,48 +61,41 @@ void game_shutdown(void)
 	free_program(sdr_foo);
 }
 
-#define STEP_INTERVAL	128
+#define STEP_INTERVAL	250
+#define TURN_INTERVAL	500
 
 void update(float dt)
 {
-	static long prev_step;
-	int dir;
-	int step[][2] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
+	int fwd = 0, right = 0, turn = 0;
 
+	/*
 	cgm_vec3 vdir = {0, 0, -1};
 
 	cgm_vmul_m3v3(&vdir, player.view_xform);
 
 	player.dir = (int)(2.0f * (-atan2(vdir.z, vdir.x) + M_PI) / M_PI + 0.5f) & 3;
+	*/
+
+	if(time_msec - prev_turn >= TURN_INTERVAL) {
+		if(input_state[INP_LTURN]) turn--;
+		if(input_state[INP_RTURN]) turn++;
+
+		if(turn) {
+			turn_player(&player, turn);
+			prev_turn = time_msec;
+		}
+	}
 
 	if(time_msec - prev_step >= STEP_INTERVAL) {
-		if(input_state[INP_FWD]) {
-			player.cx += step[player.dir][0];
-			player.cy += step[player.dir][1];
+		if(input_state[INP_FWD]) fwd++;
+		if(input_state[INP_BACK]) fwd--;
+		if(input_state[INP_LEFT]) right--;
+		if(input_state[INP_RIGHT]) right++;
+
+		if(fwd | right) {
+			move_player(&player, right, fwd);
 			prev_step = time_msec;
-			printf("step[%d] %d,%d\n", player.dir, player.cx, player.cy);
 		}
-		if(input_state[INP_BACK]) {
-			player.cx -= step[player.dir][0];
-			player.cy -= step[player.dir][1];
-			prev_step = time_msec;
-			printf("step[%d] %d,%d\n", player.dir, player.cx, player.cy);
-		}
-		if(input_state[INP_LEFT]) {
-			dir = (player.dir + 3) & 3;
-			player.cx += step[dir][0];
-			player.cy += step[dir][1];
-			prev_step = time_msec;
-			printf("step[%d] %d,%d\n", player.dir, player.cx, player.cy);
-		}
-		if(input_state[INP_RIGHT]) {
-			dir = (player.dir + 1) & 3;
-			player.cx += step[dir][0];
-			player.cy += step[dir][1];
-			prev_step = time_msec;
-			printf("step[%d] %d,%d\n", player.dir, player.cx, player.cy);
-		}
-		memset(input_state, 0, sizeof input_state);
 	}
 
 	upd_player_xform(&player);
@@ -120,7 +115,7 @@ void game_display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	cgm_midentity(proj_matrix);
-	cgm_mperspective(proj_matrix, cgm_deg_to_rad(50), win_aspect, 0.5, 500.0);
+	cgm_mperspective(proj_matrix, cgm_deg_to_rad(80), win_aspect, 0.5, 500.0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_matrix);
 
@@ -187,21 +182,56 @@ void game_keyboard(int key, int press)
 		return;
 	}
 
+	/* TODO key remapping */
 	switch(key) {
 	case 'w':
 		input_state[INP_FWD] = press;
+		if(press) {
+			move_player(&player, 0, 1);
+			prev_step = time_msec;
+		}
 		break;
 
 	case 'a':
 		input_state[INP_LEFT] = press;
+		if(press) {
+			move_player(&player, -1, 0);
+			prev_step = time_msec;
+		}
 		break;
 
 	case 's':
 		input_state[INP_BACK] = press;
+		if(press) {
+			move_player(&player, 0, -1);
+			prev_step = time_msec;
+		}
 		break;
 
 	case 'd':
 		input_state[INP_RIGHT] = press;
+		if(press) {
+			move_player(&player, 1, 0);
+			prev_step = time_msec;
+		}
+		break;
+
+	case 'q':
+		input_state[INP_LTURN] = press;
+		if(press) {
+			turn_player(&player, -1);
+			prev_turn = time_msec;
+			player.dir = (player.dir + 3) & 3;
+		}
+		break;
+
+	case 'e':
+		input_state[INP_RTURN] = press;
+		if(press) {
+			turn_player(&player, 1);
+			prev_turn = time_msec;
+			player.dir = (player.dir + 1) & 3;
+		}
 		break;
 	}
 }
