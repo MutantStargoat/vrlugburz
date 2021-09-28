@@ -68,14 +68,6 @@ void update(float dt)
 {
 	int fwd = 0, right = 0, turn = 0;
 
-	/*
-	cgm_vec3 vdir = {0, 0, -1};
-
-	cgm_vmul_m3v3(&vdir, player.view_xform);
-
-	player.dir = (int)(2.0f * (-atan2(vdir.z, vdir.x) + M_PI) / M_PI + 0.5f) & 3;
-	*/
-
 	if(time_msec - prev_turn >= TURN_INTERVAL) {
 		if(input_state[INP_LTURN]) turn--;
 		if(input_state[INP_RTURN]) turn++;
@@ -221,7 +213,6 @@ void game_keyboard(int key, int press)
 		if(press) {
 			turn_player(&player, -1);
 			prev_turn = time_msec;
-			player.dir = (player.dir + 3) & 3;
 		}
 		break;
 
@@ -230,7 +221,6 @@ void game_keyboard(int key, int press)
 		if(press) {
 			turn_player(&player, 1);
 			prev_turn = time_msec;
-			player.dir = (player.dir + 1) & 3;
 		}
 		break;
 	}
@@ -253,7 +243,7 @@ void game_mmotion(int x, int y)
 	if(!(dx | dy)) return;
 
 	if(bnstate[0]) {
-		player.theta -= cgm_deg_to_rad(dx * 0.5f);
+		player.theta += cgm_deg_to_rad(dx * 0.5f);
 		player.phi -= cgm_deg_to_rad(dy * 0.5f);
 		if(player.phi < -M_PI/2) player.phi = -M_PI/2;
 		if(player.phi > M_PI/2) player.phi = M_PI/2;
