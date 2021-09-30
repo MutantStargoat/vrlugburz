@@ -10,18 +10,31 @@ void init_player(struct player *p)
 	p->mp = p->mp_max = 10;
 }
 
+#define TWO_PI		((float)M_PI * 2.0f)
+#define HALF_PI		((float)M_PI / 2.0f)
+
+void update_player_dir(struct player *p)
+{
+	int dir;
+	float angle;
+
+	/* TODO: take vrot into account */
+	angle = fmod(p->theta, TWO_PI);
+	if(angle < 0) angle += TWO_PI;
+
+	p->theta = angle;	/* renormalize theta */
+	p->dir = (int)(4.0f * angle / TWO_PI + 0.5) & 3;
+}
+
 void move_player(struct player *p, int right, int fwd)
 {
 	static const int step[][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 	int fdir, rdir;
 	float angle;
-	cgm_vec3 vdir = {0, 0, -1};
 
-	cgm_vmul_m3v3(&vdir, p->view_xform);
+	update_player_dir(p);
 
-	angle = atan2(vdir.z, vdir.x) + 3.0 * M_PI;
-	fdir = (p->dir + (int)(2.0 * angle / M_PI)) & 3;
-
+	fdir = p->dir & 3;
 	rdir = (fdir + 1) & 3;
 	p->cx += step[fdir][0] * fwd + step[rdir][0] * right;
 	p->cy += step[fdir][1] * fwd + step[rdir][1] * right;
@@ -30,9 +43,11 @@ void move_player(struct player *p, int right, int fwd)
 void turn_player(struct player *p, int turn)
 {
 	if(!turn) return;
-	turn = turn > 0 ? 1 : 3;
-	p->dir = (p->dir + turn) & 3;
-	p->theta = 0;
+
+	p->theta += turn > 0 ? HALF_PI : -HALF_PI;
+
+	update_player_dir(p);
+	p->theta = (float)p->dir * HALF_PI;	/* snap theta */
 }
 
 void upd_player_xform(struct player *p)
@@ -45,7 +60,7 @@ void upd_player_xform(struct player *p)
 
 	cgm_midentity(p->view_xform);
 	cgm_mprerotate_x(p->view_xform, -p->phi);
-	cgm_mprerotate_y(p->view_xform, p->theta + p->dir * M_PI / 2.0f);
+	cgm_mprerotate_y(p->view_xform, p->theta);
 	cgm_mrotate_quat(p->view_xform, &p->vrot);
 	cgm_mpretranslate(p->view_xform, -pos.x, -pos.y, -pos.z);
 }
