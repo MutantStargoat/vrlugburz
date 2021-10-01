@@ -124,36 +124,38 @@ void game_display(void)
 
 static void draw_level(void)
 {
-	int i, j, k;
+	int i;
 	struct cell *cell;
 	float xform[16];
 
 	glUseProgram(sdr_foo);
 
-	cell = lvl.cells;
-	for(i=0; i<lvl.height; i++) {
-		for(j=0; j<lvl.width; j++) {
-			cgm_mtranslation(xform, j * lvl.cell_size, 0, -i * lvl.cell_size);
+	if(!player.vis) {
+		upd_player_vis(&player);
+	}
+
+	cell = player.vis;
+	while(cell) {
+		cgm_mtranslation(xform, cell->x * lvl.cell_size, 0, -cell->y * lvl.cell_size);
+
+		glPushMatrix();
+		glMultMatrixf(xform);
+
+		if(cell->tile) {
+			cgm_mrotation_y(xform, cell->tilerot * M_PI / 2.0f);
 
 			glPushMatrix();
 			glMultMatrixf(xform);
-
-			if(cell->tile) {
-				cgm_mrotation_y(xform, cell->tilerot * M_PI / 2.0f);
-
-				glPushMatrix();
-				glMultMatrixf(xform);
-				draw_meshgroup(&cell->tile->mgrp);
-				glPopMatrix();
-			}
-
-			for(k=0; k<cell->num_mgrp; k++) {
-				draw_meshgroup(cell->mgrp + k);
-			}
-			cell++;
-
+			draw_meshgroup(&cell->tile->mgrp);
 			glPopMatrix();
 		}
+
+		for(i=0; i<cell->num_mgrp; i++) {
+			draw_meshgroup(cell->mgrp + i);
+		}
+		glPopMatrix();
+
+		cell = cell->next;
 	}
 
 	glUseProgram(0);

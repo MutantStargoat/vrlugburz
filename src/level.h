@@ -33,6 +33,7 @@ struct tile {
 };
 
 struct cell {
+	int x, y;
 	int type;
 	int tiletype, tilerot;
 	int wall[4];
@@ -59,6 +60,8 @@ struct level {
 	 * loaded, excluding meshes in tiles scenefiles
 	 */
 	struct mesh *meshlist;
+
+	int visdist;
 };
 
 
@@ -72,5 +75,7 @@ struct tile *find_level_tile(struct level *lvl, int type);
 
 int gen_cell_geom(struct level *lvl, struct cell *cell);
 int gen_level_geom(struct level *lvl);
+
+int get_cell_type(struct level *lvl, int x, int y);
 
 #endif	/* LEVEL_H_ */

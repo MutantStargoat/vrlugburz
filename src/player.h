@@ -30,6 +30,6 @@ void turn_player(struct player *p, int turn);
 
 void upd_player_xform(struct player *p);
 
-void upd_level_vis(struct player *p);
+void upd_player_vis(struct player *p);
 
 #endif	/* PLAYER_H_ */

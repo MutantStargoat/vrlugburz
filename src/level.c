@@ -12,6 +12,9 @@ static int detect_cell_tile(struct level *lvl, int x, int y, int *rot);
 
 int init_level(struct level *lvl, int xsz, int ysz)
 {
+	int i, j;
+	struct cell *cell;
+
 	memset(lvl, 0, sizeof *lvl);
 
 	if(!(lvl->cells = calloc(xsz * ysz, sizeof *lvl->cells))) {
@@ -22,6 +25,18 @@ int init_level(struct level *lvl, int xsz, int ysz)
 	lvl->height = ysz;
 	lvl->cell_size = DEF_CELL_SIZE;
 	lvl->px = lvl->py = -1;
+
+	lvl->visdist = 4;
+
+	/* assign cell coordinates */
+	cell = lvl->cells;
+	for(i=0; i<ysz; i++) {
+		for(j=0; j<xsz; j++) {
+			cell->x = j;
+			cell->y = i;
+			cell++;
+		}
+	}
 	return 0;
 }
 
@@ -211,7 +226,7 @@ err:
 
 #ifndef LEVEL_EDITOR
 
-static int get_cell_type(struct level *lvl, int x, int y)
+int get_cell_type(struct level *lvl, int x, int y)
 {
 	if(x < 0 || x >= lvl->width || y < 0 || y >= lvl->height) {
 		return CELL_SOLID;
