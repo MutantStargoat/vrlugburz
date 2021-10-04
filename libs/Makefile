@@ -1,8 +1,8 @@
 .PHONY: all
-all: treestore imago drawtext
+all: treestore imago drawtext anim
 
 .PHONY: clean
-clean: clean-treestore clean-imago clean-drawtext
+clean: clean-treestore clean-imago clean-drawtext clean-anim
 
 .PHONY: treestore
 treestore:
@@ -27,3 +27,11 @@ drawtext:
 .PHONY: clean-drawtext
 clean-drawtext:
 	$(MAKE) -C drawtext clean
+
+.PHONY: anim
+anim:
+	$(MAKE) -C anim
+
+.PHONY: clean-anim
+clean-anim:
+	$(MAKE) -C anim clean

@@ -13,6 +13,7 @@ static struct tileset *tset_list;
 
 int load_tileset(struct tileset *tset, const char *fname)
 {
+	int i;
 	struct ts_node *ts, *node, *iter;
 	const char *str, *prefix;
 	char *path;
@@ -20,6 +21,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 	struct tile *tile;
 	int type;
 	float xform[16], *vec;
+	struct scene scn;
 
 	memset(tset, 0, sizeof *tset);
 
@@ -42,7 +44,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 	path_dir(fname, path);
 	combine_path(path, str, path);
 
-	if(load_scenefile(&tset->scn, path) == -1) {
+	if(load_scenefile(&scn, path) == -1) {
 		fprintf(stderr, "tileset %s: failed to load scene file: %s\n", fname, path);
 		ts_free_tree(ts);
 		return -1;
@@ -82,17 +84,37 @@ int load_tileset(struct tileset *tset, const char *fname)
 				cgm_mtranslation(xform, -vec[0], -vec[1], -vec[2]);
 			}
 
-			init_meshgroup(&tile->mgrp);
+			init_scene(&tile->scn);
 
-			mesh = tset->scn.meshlist;
-			while(mesh) {
-				if(mesh->name && match_prefix(mesh->name, prefix)) {
+			for(i=0; i<scn.num_meshes; i++) {
+				mesh = scn.meshes[i];
+				if(!mesh || !mesh->name) continue;
+				if(match_prefix(mesh->name, prefix)) {
 					if(vec) {
 						xform_mesh(mesh, xform);
 					}
-					add_meshgroup_mesh(&tile->mgrp, mesh);
+					add_scene_mesh(&tile->scn, mesh);
+					scn.meshes[i] = 0;
 				}
-				mesh = mesh->next;
+			}
+
+			for(i=0; i<scn.num_lights; i++) {
+				if(!scn.lights[i] || !scn.lights[i]->name) continue;
+				if(match_prefix(scn.lights[i]->name, prefix)) {
+					if(vec) {
+						cgm_vmul_m4v3(&scn.lights[i]->pos, xform);
+					}
+					add_scene_light(&tile->scn, scn.lights[i]);
+					scn.lights[i] = 0;
+				}
+			}
+
+			for(i=0; i<scn.num_mtl; i++) {
+				if(!scn.mtl[i] || !scn.mtl[i]->name) continue;
+				if(match_prefix(scn.mtl[i]->name, prefix)) {
+					add_scene_material(&tile->scn, scn.mtl[i]);
+					scn.mtl[i] = 0;
+				}
 			}
 
 			tile->next = tset->tiles;
@@ -100,6 +122,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 		}
 	}
 
+	destroy_scene(&scn);
 	return 0;
 }
 
@@ -114,11 +137,10 @@ void destroy_tileset(struct tileset *tset)
 		tile = tset->tiles;
 		tset->tiles = tile->next;
 
+		destroy_scene(&tile->scn);
 		free(tile->name);
 		free(tile);
 	}
-
-	destroy_scenefile(&tset->scn);
 }
 
 struct tileset *get_tileset(const char *fname)

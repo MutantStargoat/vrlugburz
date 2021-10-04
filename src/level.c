@@ -7,6 +7,7 @@
 #include "tileset.h"
 #include "fs.h"
 
+static struct cell *handle_cell_node(struct level *lvl, struct ts_node *node);
 static int detect_cell_tile(struct level *lvl, int x, int y, int *rot);
 
 
@@ -51,7 +52,7 @@ void destroy_level(struct level *lvl)
 int load_level(struct level *lvl, const char *fname)
 {
 	struct ts_node *ts, *node, *iter;
-	int i, j, sz, cx, cy, tiletype;
+	int i, j, sz, tiletype;
 	struct cell *cell;
 	float *vecptr;
 	const char *str;
@@ -101,14 +102,9 @@ int load_level(struct level *lvl, const char *fname)
 		iter = iter->next;
 
 		if(strcmp(node->name, "cell") == 0) {
-			cx = ts_get_attr_int(node, "x", -1);
-			cy = ts_get_attr_int(node, "y", -1);
-			if(cx < 0 || cy < 0 || cx >= sz || cy >= sz) {
-				fprintf(stderr, "ignoring cell with invalid or missing coordinates\n");
+			if(!(cell = handle_cell_node(lvl, node))) {
 				continue;
 			}
-			cell = lvl->cells + cy * sz + cx;
-			cell->type = ts_get_attr_int(node, "blocked", 0) ? CELL_BLOCKED : CELL_WALK;
 
 			/* abuse the next pointer to hang the treestore node temporarilly */
 			cell->next = (struct cell*)node;
@@ -130,10 +126,10 @@ int load_level(struct level *lvl, const char *fname)
 				/* no tile-type specified, try to guess */
 				tiletype = detect_cell_tile(lvl, j, i, &cell->tilerot);
 			}
-
 			if(lvl->tset) {
 				cell->tile = get_tile(lvl->tset, tiletype);
 			}
+
 			cell++;
 		}
 	}
@@ -225,6 +221,31 @@ err:
 }
 
 #ifndef LEVEL_EDITOR
+
+static struct cell *handle_cell_node(struct level *lvl, struct ts_node *node)
+{
+	int cx, cy;
+	struct cell *cell;
+	struct ts_node *cnode;
+
+	cx = ts_get_attr_int(node, "x", -1);
+	cy = ts_get_attr_int(node, "y", -1);
+	if(cx < 0 || cy < 0 || cx >= lvl->width || cy >= lvl->height) {
+		fprintf(stderr, "ignoring cell with invalid or missing coordinates\n");
+		return 0;
+	}
+	cell = lvl->cells + cy * lvl->width + cx;
+	cell->type = ts_get_attr_int(node, "blocked", 0) ? CELL_BLOCKED : CELL_WALK;
+
+	cnode = node->child_list;
+	while(cnode) {
+		if(strcmp(cnode->name, "object") == 0) {
+		}
+		cnode = cnode->next;
+	}
+	return cell;
+}
+
 
 int get_cell_type(struct level *lvl, int x, int y)
 {

@@ -3,8 +3,9 @@
 #include <ctype.h>
 #include <assert.h>
 #include "cgmath/cgmath.h"
-#include "scenefile.h"
+#include "scene.h"
 #include "rbtree.h"
+#include "util.h"
 
 struct facevertex {
 	int vidx, tidx, nidx;
@@ -33,18 +34,6 @@ static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_pr
 
 static int cmp_facevert(const void *ap, const void *bp);
 static void free_rbnode_key(struct rbnode *n, void *cls);
-
-#define GROW_ARRAY(arr, sz)	\
-	do { \
-		int newsz = (sz) ? (sz) * 2 : 16; \
-		void *tmp = realloc(arr, newsz * sizeof *(arr)); \
-		if(!tmp) { \
-			fprintf(stderr, "failed to grow array to %d\n", newsz); \
-			goto fail; \
-		} \
-		arr = tmp; \
-		sz = newsz; \
-	} while(0)
 
 
 int load_scenefile(struct scenefile *scn, const char *fname)
@@ -120,17 +109,17 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 			}
 			if(isspace(line[1])) {
 				if(varr_size >= varr_max) {
-					GROW_ARRAY(varr, varr_max);
+					GROW_ARRAY(varr, varr_max, goto fail);
 				}
 				varr[varr_size++] = v;
 			} else if(line[1] == 't' && isspace(line[2])) {
 				if(tarr_size >= tarr_max) {
-					GROW_ARRAY(tarr, tarr_max);
+					GROW_ARRAY(tarr, tarr_max, goto fail);
 				}
 				tarr[tarr_size++] = *(cgm_vec2*)&v;
 			} else if(line[1] == 'n' && isspace(line[2])) {
 				if(narr_size >= narr_max) {
-					GROW_ARRAY(narr, narr_max);
+					GROW_ARRAY(narr, narr_max, goto fail);
 				}
 				narr[narr_size++] = v;
 			}

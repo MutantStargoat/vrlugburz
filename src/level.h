@@ -1,7 +1,7 @@
 #ifndef LEVEL_H_
 #define LEVEL_H_
 
-#include "scenefile.h"
+#include "scene.h"
 #include "tileset.h"
 
 #define DEF_CELL_SIZE	3.0f
@@ -27,7 +27,7 @@ struct tile {
 	char *name;
 	int type;
 
-	struct meshgroup mgrp;
+	struct scene scn;
 
 	struct tile *next;
 };
@@ -56,10 +56,10 @@ struct level {
 
 	struct tileset *tset;
 
-	/* meshes owned by the level, constructed during geometry generation or
-	 * loaded, excluding meshes in tiles scenefiles
+	/* everything owned by the level, excluding anything in the tilesets which
+	 * are reusable across levels
 	 */
-	struct mesh *meshlist;
+	struct scene scn;
 
 	int visdist;
 };

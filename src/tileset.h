@@ -1,7 +1,7 @@
 #ifndef TILESET_H_
 #define TILESET_H_
 
-#include "scenefile.h"
+#include "scene.h"
 
 #define DEF_TILE_SIZE	3.0f
 
@@ -11,7 +11,6 @@ struct tileset {
 	char *name, *fname;
 	float tile_size;
 
-	struct scenefile scn;	/* scene file containing tile geometry */
 	struct tile *tiles;
 
 	struct tileset *next;
