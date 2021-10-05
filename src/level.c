@@ -240,6 +240,7 @@ static struct cell *handle_cell_node(struct level *lvl, struct ts_node *node)
 	cnode = node->child_list;
 	while(cnode) {
 		if(strcmp(cnode->name, "object") == 0) {
+			/* TODO */
 		}
 		cnode = cnode->next;
 	}

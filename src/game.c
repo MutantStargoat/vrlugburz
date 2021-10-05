@@ -5,10 +5,9 @@
 #include "opengl.h"
 #include "level.h"
 #include "player.h"
-#include "scenefile.h"
-#include "sdr.h"
+#include "rend.h"
 
-static void draw_level(void);
+static void draw_level(int rpass);
 
 struct level lvl;
 struct player player;
@@ -21,8 +20,6 @@ int bnstate[8];
 float cam_dist;
 float view_matrix[16], proj_matrix[16];
 
-unsigned int sdr_foo;
-
 static long prev_step, prev_turn;
 
 int game_init(void)
@@ -34,14 +31,9 @@ int game_init(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	if(!(sdr_foo = create_program_load("sdr/foo.v.glsl", "sdr/foo.p.glsl"))) {
+	if(rend_init() == -1) {
 		return -1;
 	}
-	glBindAttribLocation(sdr_foo, MESH_ATTR_VERTEX, "apos");
-	glBindAttribLocation(sdr_foo, MESH_ATTR_NORMAL, "anorm");
-	glBindAttribLocation(sdr_foo, MESH_ATTR_TANGENT, "atang");
-	glBindAttribLocation(sdr_foo, MESH_ATTR_TEXCOORD, "atex");
-	link_program(sdr_foo);
 
 	if(load_level(&lvl, "data/test.lvl") == -1) {
 		return -1;
@@ -57,8 +49,8 @@ int game_init(void)
 
 void game_shutdown(void)
 {
+	rend_destroy();
 	destroy_level(&lvl);
-	free_program(sdr_foo);
 }
 
 #define STEP_INTERVAL	250
@@ -116,19 +108,25 @@ void game_display(void)
 	glTranslatef(0, 0, -cam_dist);
 	glMultMatrixf(player.view_xform);
 
-	draw_level();
+	rend_begin(REND_DBG, RPASS_GEOM);
+	draw_level(RPASS_GEOM);
+	rend_end(REND_DBG, RPASS_GEOM);
+	rend_begin(REND_DBG, RPASS_LIGHT);
+	draw_level(RPASS_LIGHT);
+	rend_end(REND_DBG, RPASS_LIGHT);
 
 	game_swap_buffers();
 	assert(glGetError() == GL_NO_ERROR);
 }
 
-static void draw_level(void)
+static void draw_level(int rpass)
 {
-	int i;
 	struct cell *cell;
 	float xform[16];
 
-	glUseProgram(sdr_foo);
+	if(!rend[REND_DBG]->rendpass[rpass]) {
+		return;
+	}
 
 	if(!player.vis) {
 		upd_player_vis(&player);
@@ -146,23 +144,21 @@ static void draw_level(void)
 
 			glPushMatrix();
 			glMultMatrixf(xform);
-			draw_meshgroup(&cell->tile->mgrp);
+			rend_pass(REND_DBG, rpass, &cell->tile->scn);
 			glPopMatrix();
 		}
 
-		for(i=0; i<cell->num_mgrp; i++) {
-			draw_meshgroup(cell->mgrp + i);
-		}
+		rend_pass(REND_DBG, rpass, &cell->scn);
 		glPopMatrix();
 
 		cell = cell->next;
 	}
-
-	glUseProgram(0);
 }
 
 void game_reshape(int x, int y)
 {
+	rend_reshape(x, y);
+
 	glViewport(0, 0, x, y);
 	win_width = x;
 	win_height = y;

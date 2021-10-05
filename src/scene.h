@@ -62,4 +62,5 @@ int add_scene_material(struct scene *scn, struct material *mtl);
 
 int load_scenefile(struct scene *scn, const char *fname);
 
+
 #endif /* SCENE_H_ */

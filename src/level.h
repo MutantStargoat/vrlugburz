@@ -40,8 +40,7 @@ struct cell {
 	int floor, ceil;
 
 	struct tile *tile;
-	struct meshgroup *mgrp;
-	int num_mgrp;
+	struct scene scn;
 
 	struct cell *next;
 };

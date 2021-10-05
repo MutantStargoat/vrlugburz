@@ -7,11 +7,11 @@ bin = game
 dbg = -g
 warn = -pedantic -Wall
 def = -DMINIGLUT_USE_LIBC
-inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext
-libdir = -Llibs/treestore -Llibs/imago -Llibs/drawtext
+inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext -Ilibs/imago/src
+libdir = -Llibs/treestore -Llibs/imago -Llibs/drawtext -Llibs/anim
 
 CFLAGS = $(warn) $(opt) $(dbg) $(def) $(inc) -fcommon -MMD
-LDFLAGS = $(libdir) -ldrawtext -limago -ltreestore $(libgl) -lm
+LDFLAGS = $(libdir) -ldrawtext -limago -ltreestore -lanim $(libgl) -lm
 
 libgl = -lGL -lX11 -lXext
 

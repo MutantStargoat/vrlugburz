@@ -16,6 +16,8 @@ void init_mesh(struct mesh *m)
 
 void destroy_mesh(struct mesh *m)
 {
+	if(!m) return;
+
 	free(m->name);
 	free(m->varr);
 	free(m->iarr);

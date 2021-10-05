@@ -3,6 +3,7 @@
 
 #include "cgmath/cgmath.h"
 #include "geom.h"
+#include "texture.h"
 
 enum {
 	MESH_ATTR_VERTEX,
@@ -33,7 +34,7 @@ struct material {
 	cgm_vec3 spec;
 	float shininess;
 
-	unsigned int tex[NUM_TEX_SLOTS];
+	struct texture *tex[NUM_TEX_SLOTS];
 
 	struct material *next;
 };

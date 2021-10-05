@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <assert.h>
 #include "cgmath/cgmath.h"
 #include "scene.h"
+#include "texture.h"
 #include "rbtree.h"
 #include "util.h"
 
@@ -28,15 +30,14 @@ static char *cleanline(char *s);
 static char *parse_idx(char *ptr, int *idx, int arrsz);
 static char *parse_face_vert(char *ptr, struct facevertex *fv, int numv, int numt, int numn);
 
-static int load_mtllib(struct scenefile *scn, const char *path_prefix, const char *mtlfname);
-static void free_mtllist(struct material *mtl);
+static int load_mtllib(struct scene *scn, const char *path_prefix, const char *mtlfname);
 static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_prefix);
 
 static int cmp_facevert(const void *ap, const void *bp);
 static void free_rbnode_key(struct rbnode *n, void *cls);
 
 
-int load_scenefile(struct scenefile *scn, const char *fname)
+int load_scenefile(struct scene *scn, const char *fname)
 {
 	int i, nlines, res = -1;
 	FILE *fp;
@@ -90,9 +91,6 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 		return -1;
 	}
 	init_mesh(mesh);
-
-	scn->meshlist = 0;
-	scn->num_meshes = 0;
 
 	nlines = 0;
 	while(fgets(buf, sizeof buf, fp)) {
@@ -150,9 +148,7 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 		case 'g':
 			if(mesh->num_verts) {
 				mesh->mtl = mtl;
-				mesh->next = scn->meshlist;
-				scn->meshlist = mesh;
-				scn->num_meshes++;
+				add_scene_mesh(scn, mesh);
 
 				if(!(mesh = malloc(sizeof *mesh))) {
 					fprintf(stderr, "failed to allocate mesh\n");
@@ -165,19 +161,18 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 
 		case 'm':
 			if(memcmp(line, "mtllib", 6) == 0 && (line = cleanline(line + 6))) {
-				free_mtllist(scn->mtllist);
 				load_mtllib(scn, path_prefix, line);
 			}
 			break;
 
 		case 'u':
 			if(memcmp(line, "usemtl", 6) == 0 && (line = cleanline(line + 6))) {
-				mtl = scn->mtllist;
-				while(mtl) {
-					if(strcmp(mtl->name, line) == 0) {
+				mtl = 0;
+				for(i=0; i<scn->num_mtl; i++) {
+					if(strcmp(scn->mtl[i]->name, line) == 0) {
+						mtl = scn->mtl[i];
 						break;
 					}
-					mtl = mtl->next;
 				}
 			}
 			break;
@@ -189,9 +184,7 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 
 	if(mesh->num_verts) {
 		mesh->mtl = mtl;
-		mesh->next = scn->meshlist;
-		scn->meshlist = mesh;
-		scn->num_meshes++;
+		add_scene_mesh(scn, mesh);
 	} else {
 		free(mesh);
 	}
@@ -205,6 +198,7 @@ int load_scenefile(struct scenefile *scn, const char *fname)
 	if(0) {
 fail:
 		free(scn->fname);
+		scn->fname = 0;
 	}
 
 	fclose(fp);
@@ -225,7 +219,7 @@ static int proc_facevert(struct mesh *mesh, struct facevertex *fv,
 	struct vertex v;
 
 	if((node = rb_find(rbtree, &fv))) {
-		idx = (unsigned int)node->data;
+		idx = (unsigned int)(intptr_t)node->data;
 		assert(idx < mesh->num_verts);
 	} else {
 		newidx = mesh->num_verts;
@@ -244,22 +238,12 @@ static int proc_facevert(struct mesh *mesh, struct facevertex *fv,
 	if((newfv = malloc(sizeof *newfv))) {
 		*newfv = *fv;
 	}
-	if(!newfv || rb_insert(rbtree, newfv, (void*)newidx) == -1) {
+	if(!newfv || rb_insert(rbtree, newfv, (void*)(intptr_t)newidx) == -1) {
 		fprintf(stderr, "load_scenefile: failed to insert facevertex to rbtree\n");
 		free(newfv);
 		return -1;
 	}
 	return 0;
-}
-
-void destroy_scenefile(struct scenefile *scn)
-{
-	struct mesh *m;
-	while(scn->meshlist) {
-		m = scn->meshlist;
-		scn->meshlist = scn->meshlist->next;
-		free(m);
-	}
 }
 
 static char *cleanline(char *s)
@@ -317,7 +301,7 @@ static char *parse_face_vert(char *ptr, struct facevertex *fv, int numv, int num
 	return (!*ptr || isspace(*ptr)) ? ptr : 0;
 }
 
-static int load_mtllib(struct scenefile *scn, const char *path_prefix, const char *mtlfname)
+static int load_mtllib(struct scene *scn, const char *path_prefix, const char *mtlfname)
 {
 	FILE *fp;
 	char buf[256], *line;
@@ -342,8 +326,7 @@ static int load_mtllib(struct scenefile *scn, const char *path_prefix, const cha
 		if(memcmp(line, "newmtl", 6) == 0) {
 			if(mtl) {
 				conv_mtl(mtl, &om, path_prefix);
-				mtl->next = scn->mtllist;
-				scn->mtllist = mtl;
+				add_scene_material(scn, mtl);
 			}
 			mtl = calloc(1, sizeof *mtl);
 
@@ -380,21 +363,11 @@ static int load_mtllib(struct scenefile *scn, const char *path_prefix, const cha
 
 	if(mtl) {
 		conv_mtl(mtl, &om, path_prefix);
-		mtl->next = scn->mtllist;
-		scn->mtllist = mtl;
+		add_scene_material(scn, mtl);
 	}
 
 	fclose(fp);
 	return 0;
-}
-
-static void free_mtllist(struct material *mtl)
-{
-	while(mtl) {
-		void *tmp = mtl;
-		mtl = mtl->next;
-		free(tmp);
-	}
 }
 
 static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_prefix)
@@ -419,12 +392,10 @@ static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_pr
 		strcpy(fname, path_prefix);
 	}
 
-	/*
 	if(om->map_kd) {
 		strcpy(suffix, om->map_kd);
-		mm->tex[TEX_DIFFUSE] = get_image(fname);
+		mm->tex[TEX_DIFFUSE] = get_texture(fname);
 	}
-	*/
 }
 
 static int cmp_facevert(const void *ap, const void *bp)
