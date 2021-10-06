@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef IMAGO_BYTEORD_H_
 #define IMAGO_BYTEORD_H_
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199900
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199900) || (defined(_MSC_VER) && _MSC_VER >= 1600)
 #include <stdint.h>
 #else
 #include <sys/types.h>

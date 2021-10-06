@@ -9,3 +9,10 @@ data/
 datasrc/
 game
 tools/dunger/src/level.c
+*.user
+*.suo
+*.ncb
+*.vcproj
+*debug/
+*release/
+.vs/

@@ -1,11 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include "opengl.h"
+
+#ifdef WIN32
+#define GETPROCADDRESS(s)	wglGetProcAddress(s)
+#else
 #include <GL/glx.h>
+
+#define GETPROCADDRESS(s)	glXGetProcAddress((unsigned char*)s)
+#endif
 
 #define LOADPROC(type, func) \
 	do { \
-		if(!(func = (type)glXGetProcAddress((unsigned char*)#func))) { \
+		if(!(func = (type)GETPROCADDRESS(#func))) { \
 			fputs("failed to load entry point: " #func, stderr); \
 			return -1; \
 		} \

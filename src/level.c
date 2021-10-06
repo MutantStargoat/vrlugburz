@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef _MSC_VER
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
 #include <treestore.h>
 #include "level.h"
 #include "tileset.h"

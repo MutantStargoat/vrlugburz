@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vrlugburz", "vrlugburz.vcxproj", "{3FB76C5D-9B72-49F6-88F1-750A74B64912}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5E49555D-9EAC-4F8E-BF01-425CAF69B1CA} = {5E49555D-9EAC-4F8E-BF01-425CAF69B1CA}
+		{C172EED6-B13D-4926-B5C1-BB67C8412A53} = {C172EED6-B13D-4926-B5C1-BB67C8412A53}
+		{F630FDF0-B8C2-4B4C-852E-679935F81C93} = {F630FDF0-B8C2-4B4C-852E-679935F81C93}
+		{822D2BFB-E842-4BF2-B122-0EA6DBA5CCF0} = {822D2BFB-E842-4BF2-B122-0EA6DBA5CCF0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "anim", "libs\anim\anim.vcxproj", "{F630FDF0-B8C2-4B4C-852E-679935F81C93}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "drawtext", "libs\drawtext\drawtext.vcxproj", "{822D2BFB-E842-4BF2-B122-0EA6DBA5CCF0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imago", "libs\imago\imago.vcxproj", "{C172EED6-B13D-4926-B5C1-BB67C8412A53}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "treestore", "libs\treestore\treestore.vcxproj", "{5E49555D-9EAC-4F8E-BF01-425CAF69B1CA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3FB76C5D-9B72-49F6-88F1-750A74B64912}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3FB76C5D-9B72-49F6-88F1-750A74B64912}.Debug|Win32.Build.0 = Debug|Win32
+		{3FB76C5D-9B72-49F6-88F1-750A74B64912}.Release|Win32.ActiveCfg = Release|Win32
+		{3FB76C5D-9B72-49F6-88F1-750A74B64912}.Release|Win32.Build.0 = Release|Win32
+		{F630FDF0-B8C2-4B4C-852E-679935F81C93}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F630FDF0-B8C2-4B4C-852E-679935F81C93}.Debug|Win32.Build.0 = Debug|Win32
+		{F630FDF0-B8C2-4B4C-852E-679935F81C93}.Release|Win32.ActiveCfg = Release|Win32
+		{F630FDF0-B8C2-4B4C-852E-679935F81C93}.Release|Win32.Build.0 = Release|Win32
+		{822D2BFB-E842-4BF2-B122-0EA6DBA5CCF0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{822D2BFB-E842-4BF2-B122-0EA6DBA5CCF0}.Debug|Win32.Build.0 = Debug|Win32
+		{822D2BFB-E842-4BF2-B122-0EA6DBA5CCF0}.Release|Win32.ActiveCfg = Release|Win32
+		{822D2BFB-E842-4BF2-B122-0EA6DBA5CCF0}.Release|Win32.Build.0 = Release|Win32
+		{C172EED6-B13D-4926-B5C1-BB67C8412A53}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C172EED6-B13D-4926-B5C1-BB67C8412A53}.Debug|Win32.Build.0 = Debug|Win32
+		{C172EED6-B13D-4926-B5C1-BB67C8412A53}.Release|Win32.ActiveCfg = Release|Win32
+		{C172EED6-B13D-4926-B5C1-BB67C8412A53}.Release|Win32.Build.0 = Release|Win32
+		{5E49555D-9EAC-4F8E-BF01-425CAF69B1CA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5E49555D-9EAC-4F8E-BF01-425CAF69B1CA}.Debug|Win32.Build.0 = Debug|Win32
+		{5E49555D-9EAC-4F8E-BF01-425CAF69B1CA}.Release|Win32.ActiveCfg = Release|Win32
+		{5E49555D-9EAC-4F8E-BF01-425CAF69B1CA}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CDC1C9D6-A4E6-4F03-88D8-4500A684A446}
+	EndGlobalSection
+EndGlobal

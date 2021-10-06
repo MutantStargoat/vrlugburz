@@ -3,6 +3,11 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <assert.h>
+#ifdef _MSC_VER
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
 #include "cgmath/cgmath.h"
 #include "scene.h"
 #include "texture.h"
@@ -220,7 +225,7 @@ static int proc_facevert(struct mesh *mesh, struct facevertex *fv,
 
 	if((node = rb_find(rbtree, &fv))) {
 		idx = (unsigned int)(intptr_t)node->data;
-		assert(idx < mesh->num_verts);
+		assert((int)idx < mesh->num_verts);
 	} else {
 		newidx = mesh->num_verts;
 

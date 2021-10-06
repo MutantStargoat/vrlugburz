@@ -56,7 +56,7 @@ struct chdr {
 };
 
 #if defined(__WATCOMC__) || defined(_MSC_VER)
-#pragma push(pack, 1)
+#pragma pack(push, 1)
 #endif
 struct bitmap_header {
 	uint16_t width, height;
@@ -70,7 +70,7 @@ struct bitmap_header {
 	int16_t pgwidth, pgheight;
 } PACKED;
 #if defined(__WATCOMC__) || defined(_MSC_VER)
-#pragma pop(pack)
+#pragma pack(pop)
 #endif
 
 enum {
@@ -197,7 +197,7 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 
 	memset(img, 0, sizeof *img);
 
-	while(read_header(io, &hdr) != -1 && io->seek(0, SEEK_CUR, io->uptr) - start < size) {
+	while(read_header(io, &hdr) != -1 && io->seek(0, SEEK_CUR, io->uptr) - start < (int)size) {
 		switch(hdr.id) {
 		case IFF_BMHD:
 			assert(hdr.size == 20);
@@ -351,7 +351,7 @@ static int read_body_ilbm(struct img_io *io, struct bitmap_header *bmhd, struct 
 					return -1;
 				}
 			} else {
-				if(io->read(rowbuf, rowsz, io->uptr) < rowsz) {
+				if((int)io->read(rowbuf, rowsz, io->uptr) < rowsz) {
 					return -1;
 				}
 			}
@@ -400,7 +400,7 @@ static int read_body_pbm(struct img_io *io, struct bitmap_header *bmhd, struct i
 
 	} else {
 		/* uncompressed */
-		if(io->read(img->pixels, npixels, io->uptr) < npixels) {
+		if((int)io->read(img->pixels, npixels, io->uptr) < npixels) {
 			return -1;
 		}
 	}
@@ -420,7 +420,7 @@ static int read_compressed_scanline(struct img_io *io, unsigned char *scanline, 
 
 		if(ctl >= 0) {
 			count = ctl + 1;
-			if(io->read(scanline, count, io->uptr) < count) return -1;
+			if((int)io->read(scanline, count, io->uptr) < count) return -1;
 			scanline += count;
 
 		} else {
