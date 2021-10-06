@@ -6,7 +6,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <DisableSpecificWarnings>4244;4996;4305</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libs;$(SolutionDir)\libs\treestore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs;$(SolutionDir)\libs\treestore;$(SolutionDir)\libs\imago\src;$(SolutionDir)\libs\imago\zlib;$(SolutionDir)\libs\imago\libpng;$(SolutionDir)\libs\imago\jpeglib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
