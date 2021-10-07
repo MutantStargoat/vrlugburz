@@ -3,6 +3,7 @@
 #include "miniglut.h"
 #include "opengl.h"
 #include "game.h"
+#include "opt.h"
 
 static void display(void);
 static void idle(void);
@@ -35,6 +36,10 @@ int main(int argc, char **argv)
 	glutPassiveMotionFunc(game_mmotion);
 
 	glutIgnoreKeyRepeat(1);
+
+	if(init_options(argc, argv, "game.cfg") == -1) {
+		return 1;
+	}
 
 	if(game_init() == -1) {
 		return 1;
