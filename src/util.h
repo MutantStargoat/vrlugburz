@@ -16,5 +16,13 @@
 		sz = newsz; \
 	} while(0)
 
+#define malloc_nf(sz)	malloc_nf_impl(sz, __FILE__, __LINE__)
+void *malloc_nf_impl(size_t sz, const char *file, int line);
+
+#define calloc_nf(num, sz)	calloc_nf_impl(num, sz, __FILE__, __LINE__)
+void *calloc_nf_impl(size_t num, size_t sz, const char *file, int line);
+
+#define strdup_nf(s)	strdup_nf_impl(s, __FILE__, __LINE__)
+char *strdup_nf_impl(const char *s, const char *file, int line);
 
 #endif	/* UTIL_H_ */
