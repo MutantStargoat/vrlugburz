@@ -54,9 +54,9 @@ static void end(int pass)
 
 static void draw(struct scene *scn)
 {
-	int i;
+	int i, num = darr_size(scn->meshes);
 
-	for(i=0; i<scn->num_meshes; i++) {
+	for(i=0; i<num; i++) {
 		draw_mesh(scn->meshes[i]);
 	}
 }

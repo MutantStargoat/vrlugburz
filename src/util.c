@@ -23,6 +23,15 @@ void *calloc_nf_impl(size_t num, size_t sz, const char *file, int line)
 	return p;
 }
 
+void *realloc_nf_impl(void *p, size_t sz, const char *file, int line)
+{
+	if(!(p = realloc(p, sz))) {
+		fprintf(stderr, "%s:%d failed to realloc %lu bytes\n", file, line, (unsigned long)sz);
+		abort();
+	}
+	return p;
+}
+
 char *strdup_nf_impl(const char *s, const char *file, int line)
 {
 	char *res;

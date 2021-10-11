@@ -3,7 +3,7 @@ obj = $(src:.c=.o)
 dep = $(src:.c=.d)
 bin = game
 
-#opt = -O3
+#opt = -O3 -fno-strict-aliasing
 dbg = -g
 warn = -pedantic -Wall
 def = -DMINIGLUT_USE_LIBC

@@ -14,6 +14,71 @@
 #include "rbtree.h"
 #include "util.h"
 
+/*
+struct rbnode {
+	void *key, *data;
+	struct rbnode *next;
+};
+
+typedef int (*rb_cmp_func_t)(const void*, const void*);
+typedef void (*rb_del_func_t)(struct rbnode*, void*);
+
+struct rbtree {
+	struct rbnode *head;
+
+	rb_cmp_func_t cmpfunc;
+	rb_del_func_t delfunc;
+};
+
+static struct rbtree *rb_create(rb_cmp_func_t cmp_func)
+{
+	struct rbtree *rb = calloc_nf(1, sizeof *rb);
+	rb->cmpfunc = cmp_func;
+	return rb;
+}
+
+static void rb_free(struct rbtree *rb)
+{
+	struct rbnode *n;
+
+	while(rb->head) {
+		n = rb->head;
+		rb->head = n->next;
+		if(rb->delfunc) rb->delfunc(n, 0);
+		free(n);
+	}
+	free(rb);
+}
+
+static void rb_set_delete_func(struct rbtree *rb, rb_del_func_t func, void *cls)
+{
+	rb->delfunc = func;
+}
+
+static int rb_insert(struct rbtree *rb, void *key, void *data)
+{
+	struct rbnode *n = malloc_nf(sizeof *n);
+	n->key = key;
+	n->data = data;
+	n->next = rb->head;
+	rb->head = n;
+	return 0;
+}
+
+static struct rbnode *rb_find(struct rbtree *rb, void *key)
+{
+	struct rbnode *n = rb->head;
+	while(n) {
+		if(rb->cmpfunc(n->key, key) == 0) {
+			return n;
+		}
+		n = n->next;
+	}
+	return 0;
+}
+*/
+
+
 struct facevertex {
 	int vidx, tidx, nidx;
 };
@@ -51,12 +116,12 @@ int load_scenefile(struct scene *scn, const char *fname)
 	cgm_vec3 v, *varr = 0, *narr = 0;
 	cgm_vec2 *tarr = 0;
 	struct facevertex fv[4];
-	struct mesh *mesh;
+	struct mesh *mesh = 0;
 	struct material *mtl = 0;
 	char *sep;
 	struct rbtree *rbtree = 0;
 
-	memset(scn, 0, sizeof *scn);
+	init_scene(scn);
 
 	varr_size = varr_max = narr_size = narr_max = tarr_size = tarr_max = 0;
 	varr = narr = 0;
@@ -172,13 +237,7 @@ int load_scenefile(struct scene *scn, const char *fname)
 
 		case 'u':
 			if(memcmp(line, "usemtl", 6) == 0 && (line = cleanline(line + 6))) {
-				mtl = 0;
-				for(i=0; i<scn->num_mtl; i++) {
-					if(strcmp(scn->mtl[i]->name, line) == 0) {
-						mtl = scn->mtl[i];
-						break;
-					}
-				}
+				mtl = find_scene_material(scn, line);
 			}
 			break;
 
@@ -196,7 +255,7 @@ int load_scenefile(struct scene *scn, const char *fname)
 	mesh = 0;
 
 	printf("load_scenefile %s: loaded %d meshes, %d vertices\n", scn->fname,
-			scn->num_meshes, varr_size);
+			darr_size(scn->meshes), varr_size);
 
 	res = 0;
 
@@ -226,19 +285,23 @@ static int proc_facevert(struct mesh *mesh, struct facevertex *fv,
 	if((node = rb_find(rbtree, &fv))) {
 		idx = (unsigned int)(intptr_t)node->data;
 		assert((int)idx < mesh->num_verts);
-	} else {
-		newidx = mesh->num_verts;
 
-		v.pos = varr[fv->vidx];
-		if(fv->nidx >= 0) {
-			v.norm = narr[fv->nidx];
-		}
-		if(fv->tidx >= 0) {
-			v.tex = tarr[fv->tidx];
-		}
-		add_mesh_vertex(mesh, &v);
-		add_mesh_index(mesh, newidx);
+		printf("lala\n");
+		add_mesh_index(mesh, idx);
+		return 0;
 	}
+
+	newidx = mesh->num_verts;
+
+	v.pos = varr[fv->vidx];
+	if(fv->nidx >= 0) {
+		v.norm = narr[fv->nidx];
+	}
+	if(fv->tidx >= 0) {
+		v.tex = tarr[fv->tidx];
+	}
+	add_mesh_vertex(mesh, &v);
+	add_mesh_index(mesh, newidx);
 
 	if((newfv = malloc(sizeof *newfv))) {
 		*newfv = *fv;
@@ -310,7 +373,7 @@ static int load_mtllib(struct scene *scn, const char *path_prefix, const char *m
 {
 	FILE *fp;
 	char buf[256], *line;
-	struct objmtl om;
+	struct objmtl om = {0};
 	struct material *mtl = 0;
 
 	if(path_prefix && *path_prefix) {
@@ -401,6 +464,10 @@ static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_pr
 		strcpy(suffix, om->map_kd);
 		mm->tex[TEX_DIFFUSE] = get_texture(fname);
 	}
+
+	free(om->map_kd);
+	free(om->map_ke);
+	free(om->map_alpha);
 }
 
 static int cmp_facevert(const void *ap, const void *bp)

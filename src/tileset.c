@@ -17,7 +17,7 @@ static struct tileset *tset_list;
 
 int load_tileset(struct tileset *tset, const char *fname)
 {
-	int i;
+	int i, num;
 	struct ts_node *ts, *node, *iter;
 	const char *str, *prefix;
 	char *path;
@@ -77,7 +77,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 				continue;
 			}
 
-			if(!(tile = malloc(sizeof *tile))) {
+			if(!(tile = calloc(1, sizeof *tile))) {
 				fprintf(stderr, "load_tileset: failed to allocate tile\n");
 				continue;
 			}
@@ -90,7 +90,8 @@ int load_tileset(struct tileset *tset, const char *fname)
 
 			init_scene(&tile->scn);
 
-			for(i=0; i<scn.num_meshes; i++) {
+			num = darr_size(scn.meshes);
+			for(i=0; i<num; i++) {
 				mesh = scn.meshes[i];
 				if(!mesh || !mesh->name) continue;
 				if(match_prefix(mesh->name, prefix)) {
@@ -102,7 +103,8 @@ int load_tileset(struct tileset *tset, const char *fname)
 				}
 			}
 
-			for(i=0; i<scn.num_lights; i++) {
+			num = darr_size(scn.lights);
+			for(i=0; i<num; i++) {
 				if(!scn.lights[i] || !scn.lights[i]->name) continue;
 				if(match_prefix(scn.lights[i]->name, prefix)) {
 					if(vec) {
@@ -113,7 +115,8 @@ int load_tileset(struct tileset *tset, const char *fname)
 				}
 			}
 
-			for(i=0; i<scn.num_mtl; i++) {
+			num = darr_size(scn.mtl);
+			for(i=0; i<num; i++) {
 				if(!scn.mtl[i] || !scn.mtl[i]->name) continue;
 				if(match_prefix(scn.mtl[i]->name, prefix)) {
 					add_scene_material(&tile->scn, scn.mtl[i]);
@@ -126,6 +129,7 @@ int load_tileset(struct tileset *tset, const char *fname)
 		}
 	}
 
+	ts_free_tree(ts);
 	destroy_scene(&scn);
 	return 0;
 }

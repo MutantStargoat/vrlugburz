@@ -22,6 +22,7 @@ int init_level(struct level *lvl, int xsz, int ysz)
 	struct cell *cell;
 
 	memset(lvl, 0, sizeof *lvl);
+	init_scene(&lvl->scn);
 
 	if(!(lvl->cells = calloc(xsz * ysz, sizeof *lvl->cells))) {
 		free(lvl);
@@ -34,10 +35,11 @@ int init_level(struct level *lvl, int xsz, int ysz)
 
 	lvl->visdist = 4;
 
-	/* assign cell coordinates */
+	/* cell init */
 	cell = lvl->cells;
 	for(i=0; i<ysz; i++) {
 		for(j=0; j<xsz; j++) {
+			init_scene(&cell->scn);
 			cell->x = j;
 			cell->y = i;
 			cell++;
@@ -48,7 +50,18 @@ int init_level(struct level *lvl, int xsz, int ysz)
 
 void destroy_level(struct level *lvl)
 {
+	int i, j;
+
 	if(!lvl) return;
+
+	destroy_scene(&lvl->scn);
+
+	for(i=0; i<lvl->height; i++) {
+		for(j=0; j<lvl->width; j++) {
+			destroy_scene(&lvl->cells[i * lvl->width + j].scn);
+		}
+	}
+
 	free(lvl->cells);
 	free(lvl->fname);
 	free(lvl->dirname);
