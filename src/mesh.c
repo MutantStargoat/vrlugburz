@@ -12,6 +12,7 @@ static int update_meshgroup_vbo(struct meshgroup *mg);
 void init_mesh(struct mesh *m)
 {
 	memset(m, 0, sizeof *m);
+	cgm_midentity(m->xform);
 }
 
 void destroy_mesh(struct mesh *m)

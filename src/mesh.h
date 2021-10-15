@@ -42,6 +42,8 @@ struct material {
 struct mesh {
 	char *name;
 
+	float xform[16];
+
 	struct vertex *varr;
 	unsigned int *iarr;
 	int num_verts, num_idx;

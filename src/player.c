@@ -1,9 +1,5 @@
-#ifdef _MSC_VER
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
 #include "player.h"
+#include "util.h"
 
 static const int step[][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 

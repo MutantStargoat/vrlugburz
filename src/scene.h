@@ -51,6 +51,13 @@ void init_light(struct light *lt);
 int init_snode(struct snode *sn);
 void destroy_snode(struct snode *sn);
 
+struct snode *alloc_snode(void);
+void free_snode(struct snode *sn);
+void free_snode_tree(struct snode *sn);
+
+void set_snode_name(struct snode *sn, const char *name);
+const char *get_snode_name(struct snode *sn);
+
 void add_snode_mesh(struct snode *sn, struct mesh *m);
 void add_snode_light(struct snode *sn, struct light *lt);
 void add_snode_scene(struct snode *sn, struct scene *scn);
@@ -61,8 +68,15 @@ void destroy_scene(struct scene *scn);
 void add_scene_mesh(struct scene *scn, struct mesh *m);
 void add_scene_light(struct scene *scn, struct light *lt);
 void add_scene_material(struct scene *scn, struct material *mtl);
+/* just adds the node as a child of root */
+void add_scene_node(struct scene *scn, struct snode *sn);
 
+struct mesh *find_scene_mesh(struct scene *scn, const char *name);
+struct mesh *find_scene_mesh_prefix(struct scene *scn, const char *prefix);
 struct material *find_scene_material(struct scene *scn, const char *name);
+struct snode *find_scene_node(struct scene *scn, const char *name);
+
+void upd_scene_xform(struct scene *scn, long tm);
 
 int load_scenefile(struct scene *scn, const char *fname);
 

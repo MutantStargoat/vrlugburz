@@ -57,6 +57,9 @@ static void draw(struct scene *scn)
 	int i, num = darr_size(scn->meshes);
 
 	for(i=0; i<num; i++) {
+		glPushMatrix();
+		glMultMatrixf(scn->meshes[i]->xform);
 		draw_mesh(scn->meshes[i]);
+		glPopMatrix();
 	}
 }

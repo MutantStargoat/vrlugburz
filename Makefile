@@ -15,7 +15,7 @@ LDFLAGS = $(libdir) -ldrawtext -limago -ltreestore -lanim -lgoatvr $(libgl) -lm
 
 libgl = -lGL -lX11 -lXext
 
-$(bin): $(obj) libs
+$(bin): $(obj)
 	$(CC) -o $@ $(obj) $(LDFLAGS)
 
 -include $(dep)

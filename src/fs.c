@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#ifdef _MSC_VER
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
+#include "util.h"
 #include "fs.h"
 
 char *path_dir(const char *path, char *buf)

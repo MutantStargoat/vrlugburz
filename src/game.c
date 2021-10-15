@@ -125,6 +125,7 @@ static void draw_level(int rpass)
 {
 	struct cell *cell;
 	float xform[16];
+	static int last_rpass = INT_MAX;
 
 	if(!rend[REND_DBG]->rendpass[rpass]) {
 		return;
@@ -146,15 +147,23 @@ static void draw_level(int rpass)
 
 			glPushMatrix();
 			glMultMatrixf(xform);
+			if(rpass < last_rpass) {
+				upd_scene_xform(&cell->tile->scn, time_msec);
+			}
 			rend_pass(REND_DBG, rpass, &cell->tile->scn);
 			glPopMatrix();
 		}
 
+		if(rpass < last_rpass) {
+			upd_scene_xform(&cell->scn, time_msec);
+		}
 		rend_pass(REND_DBG, rpass, &cell->scn);
 		glPopMatrix();
 
 		cell = cell->next;
 	}
+
+	last_rpass = rpass;
 }
 
 void game_reshape(int x, int y)

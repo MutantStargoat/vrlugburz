@@ -1,17 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef _MSC_VER
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
 #include "treestore.h"
 #include "tileset.h"
 #include "level.h"
 #include "fs.h"
-
-static int match_prefix(const char *str, const char *prefix);
+#include "util.h"
 
 static struct tileset *tset_list;
 
@@ -213,14 +207,4 @@ int tile_type(const char *tstr)
 		}
 	}
 	return -1;
-}
-
-static int match_prefix(const char *str, const char *prefix)
-{
-	while(*str && *prefix) {
-		if(*str++ != *prefix++) {
-			return 0;
-		}
-	}
-	return 1;
 }

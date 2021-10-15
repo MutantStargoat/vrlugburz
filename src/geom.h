@@ -12,4 +12,7 @@ struct aabox {
 	cgm_vec3 vmin, vmax;
 };
 
+void aabox_sphere_insc(const struct aabox *box, struct sphere *sph);
+void aabox_sphere_circ(const struct aabox *box, struct sphere *sph);
+
 #endif	/* GEOM_H_ */

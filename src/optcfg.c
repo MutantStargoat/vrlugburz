@@ -2,12 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#ifdef WIN32
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
 #include "optcfg.h"
+#include "util.h"
 
 struct optcfg {
 	struct optcfg_option *optlist;

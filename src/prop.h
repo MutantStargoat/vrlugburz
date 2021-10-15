@@ -4,8 +4,8 @@
 #include "scene.h"
 
 enum {
-	PROP_GRAB,
-	PROP_SIM
+	PROP_GRAB	= 1,
+	PROP_SIM	= 2
 };
 
 struct prop {
@@ -15,6 +15,12 @@ struct prop {
 
 	struct prop *next;
 };
+
+void init_prop(struct prop *pr);
+void destroy_prop(struct prop *pr);
+
+struct prop *alloc_prop(void);
+void free_prop(struct prop *p);
 
 int load_props(const char *fname);		/* can be called multiple times */
 void free_props(void);

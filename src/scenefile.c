@@ -3,11 +3,7 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <assert.h>
-#ifdef _MSC_VER
-#include <malloc.h>
-#else
-#include <alloca.h>
-#endif
+#include "util.h"
 #include "cgmath/cgmath.h"
 #include "scene.h"
 #include "texture.h"
