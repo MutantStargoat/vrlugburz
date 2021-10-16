@@ -4,6 +4,9 @@
 #include "scene.h"
 #include "util.h"
 #include "darray.h"
+#include "rbtree.h"
+
+static struct snode *copy_snode_tree(struct snode *src, struct rbtree *objmap);
 
 void init_light(struct light *lt)
 {
@@ -130,6 +133,50 @@ void destroy_scene(struct scene *scn)
 	free_snode_tree(scn->root);
 }
 
+void copy_scene(struct scene *dst, struct scene *src)
+{
+	int i;
+	struct mesh *mesh;
+	struct light *lt;
+	struct material *mtl;
+	struct rbtree *objmap;
+
+	objmap = rb_create(RB_KEY_ADDR);
+
+	dst->fname = src->fname ? strdup_nf(src->fname) : 0;
+
+	for(i=0; i<darr_size(src->meshes); i++) {
+		mesh = malloc_nf(sizeof *mesh);
+		copy_mesh(mesh, src->meshes[i]);
+		add_scene_mesh(dst, mesh);
+
+		rb_insert(objmap, src->meshes[i], mesh);
+	}
+
+	for(i=0; i<darr_size(src->lights); i++) {
+		lt = malloc_nf(sizeof *lt);
+		init_light(lt);
+		lt->name = src->lights[i]->name ? strdup_nf(src->lights[i]->name) : 0;
+		lt->pos = src->lights[i]->pos;
+		lt->color = src->lights[i]->color;
+		lt->flicker = src->lights[i]->flicker;
+		add_scene_light(dst, lt);
+
+		rb_insert(objmap, src->lights[i], lt);
+	}
+
+	for(i=0; i<darr_size(src->mtl); i++) {
+		mtl = malloc_nf(sizeof *mtl);
+		*mtl = *src->mtl[i];
+		mtl->name = src->mtl[i]->name ? strdup_nf(src->mtl[i]->name) : 0;
+		mtl->next = 0;
+		add_scene_material(dst, mtl);
+	}
+
+	dst->root = copy_snode_tree(src->root, objmap);
+	rb_free(objmap);
+}
+
 void add_scene_mesh(struct scene *scn, struct mesh *m)
 {
 	darr_push(scn->meshes, &m);
@@ -254,3 +301,61 @@ void upd_scene_xform(struct scene *scn, long tm)
 {
 	update_node(scn->root, tm);
 }
+
+
+static struct snode *copy_snode_tree(struct snode *src, struct rbtree *objmap)
+{
+	int i, j, num;
+	struct snode *node, *child;
+	struct anm_animation *san, *dan;
+	struct rbnode *rbnode;
+
+	node = alloc_snode();
+
+	/* objmap contains mappings between mesh/light pointers in the original
+	 * node tree, and the node tree of the scene we're creating.  If no mapping
+	 * is found for any given object, or no objmap is provided, then the
+	 * pointers are copied to the new tree
+	 */
+	for(i=0; i<darr_size(src->meshes); i++) {
+		if(!objmap || !(rbnode = rb_find(objmap, src->meshes[i]))) {
+			add_snode_mesh(node, src->meshes[i]);
+		} else {
+			add_snode_mesh(node, rb_node_data(rbnode));
+		}
+	}
+	for(i=0; i<darr_size(src->lights); i++) {
+		if(!objmap || !(rbnode = rb_find(objmap, src->lights[i]))) {
+			add_snode_light(node, src->lights[i]);
+		} else {
+			add_snode_light(node, rb_node_data(rbnode));
+		}
+	}
+	for(i=0; i<darr_size(src->scenes); i++) {
+		add_snode_scene(node, src->scenes[i]);
+	}
+
+	node->anm.name = src->anm.name ? strdup_nf(src->anm.name) : 0;
+	node->anm.blend_dur = src->anm.blend_dur;
+	node->anm.data = src->anm.data;
+
+	num = anm_get_animation_count(&src->anm);
+	for(i=0; i<num; i++) {
+		san = anm_get_animation(&src->anm, i);
+		anm_add_node_animation(&node->anm);
+		dan = node->anm.animations + i;
+
+		dan->name = san->name ? strdup_nf(san->name) : 0;
+		for(j=0; j<ANM_NUM_TRACKS; j++) {
+			anm_copy_track(dan->tracks + j, san->tracks + j);
+		}
+	}
+
+	child = SNODE_CHILD(src);
+	while(child) {
+		anm_link_node(&node->anm, (struct anm_node*)copy_snode_tree(child, objmap));
+		child = SNODE_NEXT(child);
+	}
+	return node;
+}
+

@@ -7,6 +7,9 @@
 
 static int proc_prop_node(struct ts_node *pnode, struct scene *scn);
 
+static struct prop *proplist;
+
+
 void init_prop(struct prop *pr)
 {
 	memset(pr, 0, sizeof *pr);
@@ -99,6 +102,8 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 	}
 
 	prop = alloc_prop();
+	prop->name = strdup_nf(ts_get_attr_str(node, "name", prefix));
+
 	if(ts_get_attr_int(node, "grab", 0)) {
 		prop->flags |= PROP_GRAB;
 	}
@@ -114,7 +119,7 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 			for(i=0; i<num; i++) {
 				mesh = scn->meshes[i];
 				if(!mesh || !mesh->name) continue;
-				if(match_prefix(mesh->name, prefix)) {
+				if(match_prefix(mesh->name, attr->val.str)) {
 					/* found a dummy mesh. calculate bounds to position the node */
 					calc_mesh_bounds(mesh);
 					aabox_sphere_insc(&mesh->bb, &sph);
@@ -162,5 +167,60 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 		child = child->next;
 	}
 
+	/* move over all the meshes matching the prefix */
+	num = darr_size(scn->meshes);
+	for(i=0; i<num; i++) {
+		mesh = scn->meshes[i];
+		if(!mesh || !mesh->name) continue;
+		if(match_prefix(mesh->name, prefix)) {
+			add_scene_mesh(&prop->scn, mesh);
+			scn->meshes[i] = 0;
+		}
+	}
+
+	prop->next = proplist;
+	proplist = prop;
 	return 0;
+}
+
+void free_props(void)
+{
+	struct prop *prop;
+
+	while(proplist) {
+		prop = proplist;
+		proplist = proplist->next;
+		free_prop(prop);
+	}
+}
+
+struct prop *find_prop(const char *name)
+{
+	struct prop *prop;
+
+	prop = proplist;
+	while(prop) {
+		if(strcmp(prop->name, name) == 0) {
+			return prop;
+		}
+		prop = prop->next;
+	}
+	return 0;
+}
+
+struct prop *dup_prop(const char *name)
+{
+	struct prop *src, *prop;
+
+	if(!(src = find_prop(name))) {
+		return 0;
+	}
+
+	prop = alloc_prop();
+	prop->name = strdup_nf(src->name);
+	prop->flags = src->flags;
+
+	copy_scene(&prop->scn, &src->scn);
+
+	return prop;
 }

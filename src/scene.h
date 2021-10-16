@@ -65,6 +65,8 @@ void add_snode_scene(struct snode *sn, struct scene *scn);
 int init_scene(struct scene *scn);
 void destroy_scene(struct scene *scn);
 
+void copy_scene(struct scene *dst, struct scene *src);
+
 void add_scene_mesh(struct scene *scn, struct mesh *m);
 void add_scene_light(struct scene *scn, struct light *lt);
 void add_scene_material(struct scene *scn, struct material *mtl);
