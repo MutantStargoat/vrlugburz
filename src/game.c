@@ -126,6 +126,7 @@ static void draw_level(int rpass)
 	struct cell *cell;
 	float xform[16];
 	static int last_rpass = INT_MAX;
+	struct prop *prop;
 
 	if(!rend[REND_DBG]->rendpass[rpass]) {
 		return;
@@ -151,6 +152,11 @@ static void draw_level(int rpass)
 				upd_scene_xform(&cell->tile->scn, time_msec);
 			}
 			rend_pass(REND_DBG, rpass, &cell->tile->scn);
+			prop = cell->props;
+			while(prop) {
+				rend_pass(REND_DBG, rpass, &prop->scn);
+				prop = prop->next;
+			}
 			glPopMatrix();
 		}
 

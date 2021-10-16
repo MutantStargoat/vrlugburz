@@ -3,6 +3,7 @@
 
 #include "scene.h"
 #include "tileset.h"
+#include "prop.h"
 
 #define DEF_CELL_SIZE	3.0f
 
@@ -40,6 +41,7 @@ struct cell {
 	int floor, ceil;
 
 	struct tile *tile;
+	struct prop *props;
 	struct scene scn;
 
 	struct cell *next;

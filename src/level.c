@@ -47,14 +47,23 @@ int init_level(struct level *lvl, int xsz, int ysz)
 void destroy_level(struct level *lvl)
 {
 	int i, j;
+	struct cell *cell;
+	struct prop *prop;
 
 	if(!lvl) return;
 
 	destroy_scene(&lvl->scn);
 
+	cell = lvl->cells;
 	for(i=0; i<lvl->height; i++) {
 		for(j=0; j<lvl->width; j++) {
-			destroy_scene(&lvl->cells[i * lvl->width + j].scn);
+			destroy_scene(&cell->scn);
+			while(cell->props) {
+				prop = cell->props;
+				cell->props = prop->next;
+				free_prop(prop);
+			}
+			cell++;
 		}
 	}
 
@@ -70,7 +79,7 @@ int load_level(struct level *lvl, const char *fname)
 	struct cell *cell;
 	float *vecptr;
 	const char *str;
-	char *tset_path;
+	char *tset_path, *props_path;
 
 	if(!(ts = ts_load(fname))) {
 		fprintf(stderr, "failed to load level: %s\n", fname);
@@ -108,6 +117,14 @@ int load_level(struct level *lvl, const char *fname)
 		tset_path = alloca(strlen(str) + strlen(lvl->dirname) + 2);
 		combine_path(lvl->dirname, str, tset_path);
 		lvl->tset = get_tileset(tset_path);
+	}
+
+	if((str = ts_get_attr_str(ts, "props", 0))) {
+		props_path = alloca(strlen(str) + strlen(lvl->dirname) + 2);
+		combine_path(lvl->dirname, str, props_path);
+		/* XXX: do I want to make props part of the level? */
+		free_props();
+		load_props(props_path);
 	}
 
 	iter = ts->child_list;
@@ -241,6 +258,8 @@ static struct cell *handle_cell_node(struct level *lvl, struct ts_node *node)
 	int cx, cy;
 	struct cell *cell;
 	struct ts_node *cnode;
+	struct prop *prop;
+	const char *str;
 
 	cx = ts_get_attr_int(node, "x", -1);
 	cy = ts_get_attr_int(node, "y", -1);
@@ -254,7 +273,12 @@ static struct cell *handle_cell_node(struct level *lvl, struct ts_node *node)
 	cnode = node->child_list;
 	while(cnode) {
 		if(strcmp(cnode->name, "object") == 0) {
-			/* TODO */
+			if((str = ts_get_attr_str(cnode, "name", 0))) {
+				if((prop = dup_prop(str))) {
+					prop->next = cell->props;
+					cell->props = prop;
+				}
+			}
 		}
 		cnode = cnode->next;
 	}
