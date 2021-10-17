@@ -152,8 +152,12 @@ static void draw_level(int rpass)
 				upd_scene_xform(&cell->tile->scn, time_msec);
 			}
 			rend_pass(REND_DBG, rpass, &cell->tile->scn);
+
 			prop = cell->props;
 			while(prop) {
+				if(rpass < last_rpass) {
+					upd_scene_xform(&prop->scn, time_msec);
+				}
 				rend_pass(REND_DBG, rpass, &prop->scn);
 				prop = prop->next;
 			}

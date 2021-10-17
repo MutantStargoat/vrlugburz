@@ -146,31 +146,37 @@ void copy_scene(struct scene *dst, struct scene *src)
 	dst->fname = src->fname ? strdup_nf(src->fname) : 0;
 
 	for(i=0; i<darr_size(src->meshes); i++) {
-		mesh = malloc_nf(sizeof *mesh);
-		copy_mesh(mesh, src->meshes[i]);
-		add_scene_mesh(dst, mesh);
+		if(src->meshes[i]) {
+			mesh = malloc_nf(sizeof *mesh);
+			copy_mesh(mesh, src->meshes[i]);
+			add_scene_mesh(dst, mesh);
 
-		rb_insert(objmap, src->meshes[i], mesh);
+			rb_insert(objmap, src->meshes[i], mesh);
+		}
 	}
 
 	for(i=0; i<darr_size(src->lights); i++) {
-		lt = malloc_nf(sizeof *lt);
-		init_light(lt);
-		lt->name = src->lights[i]->name ? strdup_nf(src->lights[i]->name) : 0;
-		lt->pos = src->lights[i]->pos;
-		lt->color = src->lights[i]->color;
-		lt->flicker = src->lights[i]->flicker;
-		add_scene_light(dst, lt);
+		if(src->lights[i]) {
+			lt = malloc_nf(sizeof *lt);
+			init_light(lt);
+			lt->name = src->lights[i]->name ? strdup_nf(src->lights[i]->name) : 0;
+			lt->pos = src->lights[i]->pos;
+			lt->color = src->lights[i]->color;
+			lt->flicker = src->lights[i]->flicker;
+			add_scene_light(dst, lt);
 
-		rb_insert(objmap, src->lights[i], lt);
+			rb_insert(objmap, src->lights[i], lt);
+		}
 	}
 
 	for(i=0; i<darr_size(src->mtl); i++) {
-		mtl = malloc_nf(sizeof *mtl);
-		*mtl = *src->mtl[i];
-		mtl->name = src->mtl[i]->name ? strdup_nf(src->mtl[i]->name) : 0;
-		mtl->next = 0;
-		add_scene_material(dst, mtl);
+		if(src->mtl[i]) {
+			mtl = malloc_nf(sizeof *mtl);
+			*mtl = *src->mtl[i];
+			mtl->name = src->mtl[i]->name ? strdup_nf(src->mtl[i]->name) : 0;
+			mtl->next = 0;
+			add_scene_material(dst, mtl);
+		}
 	}
 
 	dst->root = copy_snode_tree(src->root, objmap);

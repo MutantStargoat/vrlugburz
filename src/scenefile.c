@@ -157,8 +157,9 @@ int load_scenefile(struct scene *scn, const char *fname)
 					goto fail;
 				}
 				init_mesh(mesh);
-				mesh->name = strdup(cleanline(line + 2));
 			}
+			if(mesh->name) free(mesh->name);
+			mesh->name = strdup(cleanline(line + 2));
 			break;
 
 		case 'm':
@@ -188,6 +189,9 @@ int load_scenefile(struct scene *scn, const char *fname)
 
 	printf("load_scenefile %s: loaded %d meshes, %d vertices\n", scn->fname,
 			darr_size(scn->meshes), varr_size);
+	for(i=0; i<darr_size(scn->meshes); i++) {
+		printf(" - %s\n", scn->meshes[i]->name ? scn->meshes[i]->name : "?");
+	}
 
 	res = 0;
 
