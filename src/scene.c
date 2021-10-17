@@ -83,7 +83,7 @@ void add_snode_mesh(struct snode *sn, struct mesh *m)
 
 void add_snode_light(struct snode *sn, struct light *lt)
 {
-	darr_push(sn->meshes, &lt);
+	darr_push(sn->lights, &lt);
 }
 
 void add_snode_scene(struct snode *sn, struct scene *scn)
