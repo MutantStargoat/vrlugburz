@@ -10,7 +10,7 @@
 
 struct glcaps {
 	int ver_major, ver_minor;
-	int sdr, vbo;
+	int sdr, vbo, fbo;
 } glcaps;
 
 PFNGLGENBUFFERSPROC glGenBuffers;
@@ -45,7 +45,18 @@ PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 
+PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
+PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
+PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
+PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
+PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
+PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
+PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+
 int init_opengl(void);
 
+int nextpow2(int x);
 
 #endif	/* OPENGL_H_ */

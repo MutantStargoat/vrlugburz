@@ -26,6 +26,9 @@ enum {
 long time_msec;
 int input_state[MAX_INP];
 
+int win_width, win_height;
+float win_aspect;
+
 int game_init(void);
 void game_shutdown(void);
 

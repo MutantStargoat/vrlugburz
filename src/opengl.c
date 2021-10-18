@@ -35,12 +35,16 @@ int init_opengl(void)
 		return -1;
 	}
 
-	if(glcaps.ver_major >= 2 || glcaps.ver_minor >= 5 || (strstr(glext, "GL_ARB_vertex_buffer_object"))) {
+	if(glcaps.ver_major >= 2 || glcaps.ver_minor >= 5 || strstr(glext, "GL_ARB_vertex_buffer_object")) {
 		glcaps.vbo = 1;
 	}
 
 	if(glcaps.ver_major >= 2 || (strstr(glext, "GL_ARB_vertex_shader") && strstr(glext, "GL_ARB_fragment_shader"))) {
 		glcaps.sdr = 1;
+	}
+
+	if(glcaps.ver_major >= 3 || (strstr(glext, "GL_EXT_framebuffer_object") || strstr(glext, "GL_ARB_framebuffer_object"))) {
+		glcaps.fbo = 1;
 	}
 
 	if(glcaps.vbo) {
@@ -79,5 +83,28 @@ int init_opengl(void)
 		LOADPROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer);
 	}
 
+	if(glcaps.fbo) {
+		LOADPROC(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers);
+		LOADPROC(PFNGLDELETEFRAMEBUFFERSPROC, glDeleteFramebuffers);
+		LOADPROC(PFNGLBINDFRAMEBUFFERPROC, glBindFramebuffer);
+		LOADPROC(PFNGLFRAMEBUFFERTEXTURE2DPROC, glFramebufferTexture2D);
+		LOADPROC(PFNGLFRAMEBUFFERRENDERBUFFERPROC, glFramebufferRenderbuffer);
+		LOADPROC(PFNGLGENRENDERBUFFERSPROC, glGenRenderbuffers);
+		LOADPROC(PFNGLDELETERENDERBUFFERSPROC, glDeleteRenderbuffers);
+		LOADPROC(PFNGLBINDRENDERBUFFERPROC, glBindRenderbuffer);
+		LOADPROC(PFNGLRENDERBUFFERSTORAGEPROC, glRenderbufferStorage);
+	}
+
 	return 0;
+}
+
+int nextpow2(int x)
+{
+	if(--x < 0) return 0;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	return x + 1;
 }
