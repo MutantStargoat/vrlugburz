@@ -277,6 +277,8 @@ static struct cell *handle_cell_node(struct level *lvl, struct ts_node *node)
 				if((prop = dup_prop(str))) {
 					prop->next = cell->props;
 					cell->props = prop;
+				} else {
+					fprintf(stderr, "level requested missing prop: %s\n", str);
 				}
 			}
 		}

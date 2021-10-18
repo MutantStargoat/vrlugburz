@@ -101,7 +101,7 @@ void game_display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	cgm_midentity(proj_matrix);
-	cgm_mperspective(proj_matrix, cgm_deg_to_rad(80), win_aspect, 0.5, 500.0);
+	cgm_mperspective(proj_matrix, cgm_deg_to_rad(60), win_aspect, 0.5, 500.0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_matrix);
 

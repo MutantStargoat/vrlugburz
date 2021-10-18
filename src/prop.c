@@ -178,6 +178,12 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 		}
 	}
 
+	if(darr_empty(prop->scn.meshes) && darr_empty(prop->scn.lights)) {
+		fprintf(stderr, "ignoring empty prop: %s\n", prop->name);
+		free_prop(prop);
+		return -1;
+	}
+
 	prop->next = proplist;
 	proplist = prop;
 	return 0;
