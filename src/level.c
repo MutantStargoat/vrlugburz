@@ -391,12 +391,12 @@ static int detect_cell_tile(struct level *lvl, int x, int y, int *rot)
 		return TILE_CROSS;
 
 	case 0404:	/* E str2open */
+		*rot = 2;
 		return TILE_STR2OPEN;
 	case 0005:	/* N str2open */
 		*rot = 1;
 		return TILE_STR2OPEN;
 	case 0101:	/* W str2open */
-		*rot = 2;
 		return TILE_STR2OPEN;
 	case 0500:	/* S str2open */
 		*rot = 3;
