@@ -25,6 +25,7 @@ struct player {
 
 void init_player(struct player *p);
 
+void update_player_dir(struct player *p);
 void move_player(struct player *p, int right, int fwd);
 void turn_player(struct player *p, int turn);
 

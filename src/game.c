@@ -60,6 +60,7 @@ void game_shutdown(void)
 
 void update(float dt)
 {
+	int upd_dir_pending = 1;
 	int fwd = 0, right = 0, turn = 0;
 
 	if(time_msec - prev_turn >= TURN_INTERVAL) {
@@ -69,6 +70,7 @@ void update(float dt)
 		if(turn) {
 			turn_player(&player, turn);
 			prev_turn = time_msec;
+			upd_dir_pending = 0;
 		}
 	}
 
@@ -81,9 +83,13 @@ void update(float dt)
 		if(fwd | right) {
 			move_player(&player, right, fwd);
 			prev_step = time_msec;
+			upd_dir_pending = 0;
 		}
 	}
 
+	if(upd_dir_pending) {
+		update_player_dir(&player);
+	}
 	upd_player_xform(&player);
 }
 
