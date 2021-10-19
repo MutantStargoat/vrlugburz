@@ -8,9 +8,17 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
+enum {
+	GLCAPS_SDR		= 0x0001,
+	GLCAPS_VBO		= 0x0002,
+	GLCAPS_FBO		= 0x0004,
+	GLCAPS_FB_SRGB	= 0x0008,
+	GLCAPS_DEBUG	= 0x8000
+};
+
 struct glcaps {
 	int ver_major, ver_minor;
-	int sdr, vbo, fbo;
+	unsigned int caps;
 } glcaps;
 
 PFNGLGENBUFFERSPROC glGenBuffers;
@@ -54,6 +62,9 @@ PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
 PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
 PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
 PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
+PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
+
+PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
 
 int init_opengl(void);
 

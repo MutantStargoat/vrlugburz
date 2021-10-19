@@ -22,6 +22,8 @@ float view_matrix[16], proj_matrix[16];
 
 static long prev_step, prev_turn;
 
+static int rend = REND_LEVEL;
+
 int game_init(void)
 {
 	if(init_opengl() == -1) {
@@ -116,12 +118,14 @@ void game_display(void)
 	glTranslatef(0, 0, -cam_dist);
 	glMultMatrixf(player.view_xform);
 
-	rend_begin(REND_DBG, RPASS_GEOM);
+	rend_begin(rend, RPASS_GEOM);
 	draw_level(RPASS_GEOM);
-	rend_end(REND_DBG, RPASS_GEOM);
-	rend_begin(REND_DBG, RPASS_LIGHT);
+	rend_end(rend, RPASS_GEOM);
+	rend_begin(rend, RPASS_LIGHT);
 	draw_level(RPASS_LIGHT);
-	rend_end(REND_DBG, RPASS_LIGHT);
+	rend_end(rend, RPASS_LIGHT);
+
+	rend_lvl_debugvis();
 
 	game_swap_buffers();
 	assert(glGetError() == GL_NO_ERROR);
@@ -134,7 +138,7 @@ static void draw_level(int rpass)
 	static int last_rpass = INT_MAX;
 	struct prop *prop;
 
-	if(!rend[REND_DBG]->rendpass[rpass]) {
+	if(!renderer[rend]->rendpass[rpass]) {
 		return;
 	}
 
@@ -157,14 +161,14 @@ static void draw_level(int rpass)
 			if(rpass < last_rpass) {
 				upd_scene_xform(&cell->tile->scn, time_msec);
 			}
-			rend_pass(REND_DBG, rpass, &cell->tile->scn);
+			rend_pass(rend, rpass, &cell->tile->scn);
 
 			prop = cell->props;
 			while(prop) {
 				if(rpass < last_rpass) {
 					upd_scene_xform(&prop->scn, time_msec);
 				}
-				rend_pass(REND_DBG, rpass, &prop->scn);
+				rend_pass(rend, rpass, &prop->scn);
 				prop = prop->next;
 			}
 			glPopMatrix();
@@ -173,7 +177,7 @@ static void draw_level(int rpass)
 		if(rpass < last_rpass) {
 			upd_scene_xform(&cell->scn, time_msec);
 		}
-		rend_pass(REND_DBG, rpass, &cell->scn);
+		rend_pass(rend, rpass, &cell->scn);
 		glPopMatrix();
 
 		cell = cell->next;

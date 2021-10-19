@@ -24,19 +24,38 @@ static struct renderer rfunc = {
 };
 
 static struct render_target rtarg;
-static unsigned int geom_sdr, light_sdr;
+static unsigned int sdr_geom, sdr_light;
 
 struct renderer *init_rend_level(void)
 {
-	if(init_rtarg(&rtarg, win_width, win_height, 4) == -1) {
+	if(!(sdr_geom = create_program_load("sdr/defer_geom.v.glsl", "sdr/defer_geom.p.glsl"))) {
 		return 0;
 	}
+	glBindAttribLocation(sdr_geom, MESH_ATTR_VERTEX, "apos");
+	glBindAttribLocation(sdr_geom, MESH_ATTR_NORMAL, "anorm");
+	glBindAttribLocation(sdr_geom, MESH_ATTR_TANGENT, "atang");
+	glBindAttribLocation(sdr_geom, MESH_ATTR_TEXCOORD, "atex");
+	link_program(sdr_geom);
+
+	if(!(sdr_light = create_program_load("sdr/defer_light.v.glsl", "sdr/defer_light.p.glsl"))) {
+		free_program(sdr_geom);
+		return 0;
+	}
+
+	if(init_rtarg(&rtarg, win_width, win_height, 4) == -1) {
+		free_program(sdr_geom);
+		free_program(sdr_light);
+		return 0;
+	}
+
 	return &rfunc;
 }
 
 static void destroy(void)
 {
 	destroy_rtarg(&rtarg);
+	free_program(sdr_geom);
+	free_program(sdr_light);
 }
 
 static void reshape(int x, int y)
@@ -49,11 +68,12 @@ static void begin(int pass)
 	switch(pass) {
 	case RPASS_GEOM:
 		bind_rtarg(&rtarg);
-		glUseProgram(geom_sdr);
+		glUseProgram(sdr_geom);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		break;
 
 	case RPASS_LIGHT:
-		glUseProgram(light_sdr);
+		glUseProgram(sdr_light);
 		break;
 
 	default:
@@ -100,4 +120,39 @@ static void light_pass(struct scene *scn)
 
 static void blend_pass(struct scene *scn)
 {
+}
+
+void rend_lvl_debugvis(void)
+{
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glPushAttrib(GL_ENABLE_BIT);
+
+	glBindTexture(GL_TEXTURE_2D, rtarg.tex[1]);
+	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
+
+	glUseProgram(0);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 1);
+	glVertex2f(-1, -1);
+	glTexCoord2f(1, 1);
+	glVertex2f(1, -1);
+	glTexCoord2f(1, 0);
+	glVertex2f(1, 1);
+	glTexCoord2f(0, 0);
+	glVertex2f(-1, 1);
+	glEnd();
+
+	glPopAttrib();
+
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
 }

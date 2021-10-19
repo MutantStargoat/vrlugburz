@@ -18,6 +18,11 @@
 		} \
 	} while(0)
 
+#ifdef GLDEBUG
+static void dbglog(unsigned int src, unsigned int type, unsigned int id,
+		unsigned int severity, int length, const char *msg, const void *cls);
+#endif
+
 int init_opengl(void)
 {
 	const char *glext, *glver;
@@ -36,25 +41,17 @@ int init_opengl(void)
 	}
 
 	if(glcaps.ver_major >= 2 || glcaps.ver_minor >= 5 || strstr(glext, "GL_ARB_vertex_buffer_object")) {
-		glcaps.vbo = 1;
-	}
+		glcaps.caps |= GLCAPS_VBO;
 
-	if(glcaps.ver_major >= 2 || (strstr(glext, "GL_ARB_vertex_shader") && strstr(glext, "GL_ARB_fragment_shader"))) {
-		glcaps.sdr = 1;
-	}
-
-	if(glcaps.ver_major >= 3 || (strstr(glext, "GL_EXT_framebuffer_object") || strstr(glext, "GL_ARB_framebuffer_object"))) {
-		glcaps.fbo = 1;
-	}
-
-	if(glcaps.vbo) {
 		LOADPROC(PFNGLGENBUFFERSPROC, glGenBuffers);
 		LOADPROC(PFNGLDELETEBUFFERSPROC, glDeleteBuffers);
 		LOADPROC(PFNGLBINDBUFFERPROC, glBindBuffer);
 		LOADPROC(PFNGLBUFFERDATAPROC, glBufferData);
 	}
 
-	if(glcaps.sdr) {
+	if(glcaps.ver_major >= 2 || (strstr(glext, "GL_ARB_vertex_shader") && strstr(glext, "GL_ARB_fragment_shader"))) {
+		glcaps.caps |= GLCAPS_SDR;
+
 		LOADPROC(PFNGLCREATEPROGRAMPROC, glCreateProgram);
 		LOADPROC(PFNGLDELETEPROGRAMPROC, glDeleteProgram);
 		LOADPROC(PFNGLATTACHSHADERPROC, glAttachShader);
@@ -83,7 +80,10 @@ int init_opengl(void)
 		LOADPROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer);
 	}
 
-	if(glcaps.fbo) {
+	if(glcaps.ver_major >= 3 || strstr(glext, "GL_EXT_framebuffer_object") ||
+			strstr(glext, "GL_ARB_framebuffer_object")) {
+		glcaps.caps |= GLCAPS_FBO;
+
 		LOADPROC(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers);
 		LOADPROC(PFNGLDELETEFRAMEBUFFERSPROC, glDeleteFramebuffers);
 		LOADPROC(PFNGLBINDFRAMEBUFFERPROC, glBindFramebuffer);
@@ -93,6 +93,23 @@ int init_opengl(void)
 		LOADPROC(PFNGLDELETERENDERBUFFERSPROC, glDeleteRenderbuffers);
 		LOADPROC(PFNGLBINDRENDERBUFFERPROC, glBindRenderbuffer);
 		LOADPROC(PFNGLRENDERBUFFERSTORAGEPROC, glRenderbufferStorage);
+		LOADPROC(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glCheckFramebufferStatus);
+	}
+
+	if((glcaps.ver_major = 3 && glcaps.ver_minor >= 2) || glcaps.ver_major > 3 ||
+			strstr(glext, "GL_ARB_framebuffer_sRGB") || strstr(glext, "GL_EXT_framebuffer_sRGB")) {
+		glcaps.caps |= GLCAPS_FB_SRGB;
+	}
+
+	if(strstr(glext, "GL_ARB_debug_output")) {
+		glcaps.caps |= GLCAPS_DEBUG;
+
+		LOADPROC(PFNGLDEBUGMESSAGECALLBACKPROC, glDebugMessageCallback);
+
+#ifdef GLDEBUG
+		glDebugMessageCallback(dbglog, 0);
+		glEnable(GL_DEBUG_OUTPUT);
+#endif
 	}
 
 	return 0;
@@ -108,3 +125,70 @@ int nextpow2(int x)
 	x |= x >> 16;
 	return x + 1;
 }
+
+#ifdef GLDEBUG
+static const char *gldebug_srcstr(unsigned int src)
+{
+	switch(src) {
+	case GL_DEBUG_SOURCE_API:
+		return "api";
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+		return "wsys";
+	case GL_DEBUG_SOURCE_SHADER_COMPILER:
+		return "sdrc";
+	case GL_DEBUG_SOURCE_THIRD_PARTY:
+		return "3rdparty";
+	case GL_DEBUG_SOURCE_APPLICATION:
+		return "app";
+	case GL_DEBUG_SOURCE_OTHER:
+		return "other";
+	default:
+		break;
+	}
+	return "unknown";
+}
+
+static const char *gldebug_typestr(unsigned int type)
+{
+	switch(type) {
+	case GL_DEBUG_TYPE_ERROR:
+		return "error";
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+		return "deprecated";
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+		return "undefined behavior";
+	case GL_DEBUG_TYPE_PORTABILITY:
+		return "portability warning";
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		return "performance warning";
+	case GL_DEBUG_TYPE_OTHER:
+		return "other";
+	default:
+		break;
+	}
+	return "unknown";
+}
+
+static void dbglog(unsigned int src, unsigned int type, unsigned int id,
+		unsigned int severity, int length, const char *msg, const void *cls)
+{
+	static const char *fmt = "[GLDEBUG] (%s) %s: %s\n";
+	switch(type) {
+	case GL_DEBUG_TYPE_ERROR:
+		fprintf(stderr, fmt, gldebug_srcstr(src), gldebug_typestr(type), msg);
+		break;
+
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+	case GL_DEBUG_TYPE_PORTABILITY:
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		fprintf(stderr, fmt, gldebug_srcstr(src), gldebug_typestr(type), msg);
+		break;
+
+		/*
+	default:
+		fprintf(stderr, fmt, gldebug_srcstr(src), gldebug_typestr(type), msg);
+		*/
+	}
+
+}
+#endif

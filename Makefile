@@ -6,7 +6,7 @@ bin = game
 #opt = -O3 -fno-strict-aliasing
 dbg = -g
 warn = -pedantic -Wall
-def = -DMINIGLUT_USE_LIBC
+def = -DMINIGLUT_USE_LIBC -DGLDEBUG
 inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext -Ilibs/imago/src
 libdir = -Llibs/treestore -Llibs/imago -Llibs/drawtext -Llibs/anim
 

@@ -30,7 +30,7 @@ struct renderer {
 	void (*rendpass[NUM_RPASSES])(struct scene*);
 };
 
-struct renderer *rend[NUM_REND];
+struct renderer *renderer[NUM_REND];
 
 int rend_init(void);
 void rend_destroy(void);
