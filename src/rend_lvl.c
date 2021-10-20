@@ -130,6 +130,9 @@ void rend_lvl_debugvis(void)
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glScalef((float)rtarg.width / (float)rtarg.tex_width, (float)rtarg.height / (float)rtarg.tex_height, 1);
 
 	glPushAttrib(GL_ENABLE_BIT);
 
@@ -140,18 +143,20 @@ void rend_lvl_debugvis(void)
 	glUseProgram(0);
 
 	glBegin(GL_QUADS);
-	glTexCoord2f(0, 1);
-	glVertex2f(-1, -1);
-	glTexCoord2f(1, 1);
-	glVertex2f(1, -1);
-	glTexCoord2f(1, 0);
-	glVertex2f(1, 1);
 	glTexCoord2f(0, 0);
+	glVertex2f(-1, -1);
+	glTexCoord2f(1, 0);
+	glVertex2f(1, -1);
+	glTexCoord2f(1, 1);
+	glVertex2f(1, 1);
+	glTexCoord2f(0, 1);
 	glVertex2f(-1, 1);
 	glEnd();
 
 	glPopAttrib();
 
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();

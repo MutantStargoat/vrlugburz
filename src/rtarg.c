@@ -113,9 +113,15 @@ int resize_rtarg(struct render_target *rt, int xsz, int ysz)
 
 void bind_rtarg(struct render_target *rt)
 {
+	static const unsigned int rbuf[] = {
+		GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,
+		GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7
+	};
+
 	if(rt) {
 		glBindFramebuffer(GL_FRAMEBUFFER, rt->fbo);
 		glViewport(0, 0, rt->width, rt->height);
+		glDrawBuffers(rt->num_tex, rbuf);
 	} else {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, win_width, win_height);

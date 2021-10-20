@@ -94,6 +94,7 @@ int init_opengl(void)
 		LOADPROC(PFNGLBINDRENDERBUFFERPROC, glBindRenderbuffer);
 		LOADPROC(PFNGLRENDERBUFFERSTORAGEPROC, glRenderbufferStorage);
 		LOADPROC(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glCheckFramebufferStatus);
+		LOADPROC(PFNGLDRAWBUFFERSPROC, glDrawBuffers);
 	}
 
 	if((glcaps.ver_major = 3 && glcaps.ver_minor >= 2) || glcaps.ver_major > 3 ||
