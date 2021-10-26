@@ -148,6 +148,7 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 		if(strcmp(child->name, "light") == 0) {
 			lt = malloc_nf(sizeof *lt);
 			init_light(lt);
+			add_scene_light(&prop->scn, lt);
 
 			sn = alloc_snode();
 			add_snode_light(sn, lt);
