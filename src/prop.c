@@ -133,7 +133,7 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 					scn->meshes[i] = 0;
 
 					sn = alloc_snode();
-					set_snode_name(sn, prefix);
+					set_snode_name(sn, attr->val.str);
 					anm_set_position(&sn->anm, &sph.pos.x, 0);
 					add_scene_node(&prop->scn, sn);
 				}
