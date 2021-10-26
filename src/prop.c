@@ -104,6 +104,8 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 	prop = alloc_prop();
 	prop->name = strdup_nf(ts_get_attr_str(node, "name", prefix));
 
+	printf("loading prop: %s\n", prop->name);
+
 	if(ts_get_attr_int(node, "grab", 0)) {
 		prop->flags |= PROP_GRAB;
 	}
@@ -123,6 +125,8 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 					/* found a dummy mesh. calculate bounds to position the node */
 					calc_mesh_bounds(mesh);
 					aabox_sphere_insc(&mesh->bb, &sph);
+
+					printf(" - adding dummy %s: %f %f %f\n", mesh->name, sph.pos.x, sph.pos.y, sph.pos.z);
 
 					/* destroy the mesh, no longer needed */
 					destroy_mesh(mesh);
@@ -151,8 +155,10 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 			if((str = ts_get_attr_str(child, "parent", 0)) &&
 					(snpar = find_scene_node(&prop->scn, str))) {
 				anm_link_node(&snpar->anm, &sn->anm);
+				printf(" - adding light under %s\n", str);
 			} else {
 				add_scene_node(&prop->scn, sn);
+				printf(" - adding light\n");
 			}
 
 			if((vec = ts_get_attr_vec(child, "pos", 0))) {
@@ -175,6 +181,7 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 		if(match_prefix(mesh->name, prefix)) {
 			add_scene_mesh(&prop->scn, mesh);
 			scn->meshes[i] = 0;
+			printf(" - adding mesh: %s\n", mesh->name);
 		}
 	}
 

@@ -50,5 +50,5 @@ int match_prefix(const char *str, const char *prefix)
 			return 0;
 		}
 	}
-	return 1;
+	return *prefix ? 0 : 1;
 }
