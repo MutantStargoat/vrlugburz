@@ -16,6 +16,9 @@ static void geom_pass(struct scene *scn);
 static void light_pass(struct scene *scn);
 static void blend_pass(struct scene *scn);
 
+static void create_light_sphere(struct mesh *mesh);
+
+
 static struct renderer rfunc = {
 	destroy,
 	reshape,
@@ -25,6 +28,7 @@ static struct renderer rfunc = {
 
 static struct render_target rtarg;
 static unsigned int sdr_geom, sdr_light;
+static struct mesh sphmesh;
 
 struct renderer *init_rend_level(void)
 {
@@ -48,6 +52,8 @@ struct renderer *init_rend_level(void)
 		return 0;
 	}
 
+	create_light_sphere(&sphmesh);
+
 	return &rfunc;
 }
 
@@ -56,6 +62,7 @@ static void destroy(void)
 	destroy_rtarg(&rtarg);
 	free_program(sdr_geom);
 	free_program(sdr_light);
+	destroy_mesh(&sphmesh);
 }
 
 static void reshape(int x, int y)
@@ -74,6 +81,10 @@ static void begin(int pass)
 
 	case RPASS_LIGHT:
 		glUseProgram(sdr_light);
+		/* TODO: ambient pass */
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
 		break;
 
 	default:
@@ -91,6 +102,7 @@ static void end(int pass)
 
 	case RPASS_LIGHT:
 		glUseProgram(0);
+		glDisable(GL_BLEND);
 		break;
 
 	default:
@@ -116,6 +128,10 @@ static void geom_pass(struct scene *scn)
 
 static void light_pass(struct scene *scn)
 {
+	int i, num = darr_size(scn->lights);
+
+	for(i=0; i<num; i++) {
+	}
 }
 
 static void blend_pass(struct scene *scn)
@@ -160,4 +176,23 @@ void rend_lvl_debugvis(void)
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
+}
+
+
+static void create_light_sphere(struct mesh *mesh, int usub, int vsub)
+{
+	float u, v, du, dv;
+	int i, j, uverts, vverts, num_verts;
+
+	if(usub < 3) usub = 3;
+	if(vsub < 2) vsub = 2;
+
+	uverts = usub;
+	vverts = vsub + 1;
+	num_verts = uverts * vverts;
+
+	for(i=0; i<vverts; i++) {
+		for(j=0; j<uverts; j++) {
+		}
+	}
 }

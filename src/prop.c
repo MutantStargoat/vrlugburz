@@ -95,6 +95,7 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 	struct prop *prop;
 	const float *vec;
 	const char *str;
+	float inten;
 
 	if(!(prefix = ts_get_attr_str(node, "prefix", 0))) {
 		fprintf(stderr, "ignoring prop without prefix\n");
@@ -166,9 +167,13 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 				anm_set_position(&sn->anm, vec, 0);
 			}
 
+			inten = ts_get_attr_num(child, "intensity", 1.0f);
 			if((vec = ts_get_attr_vec(child, "color", 0))) {
-				cgm_vcons(&lt->color, vec[0], vec[1], vec[2]);
+				cgm_vcons(&lt->color, vec[0] * inten, vec[1] * inten, vec[2] * inten);
 			}
+
+			lt->max_range = ts_get_attr_num(child, "max_range", sqrt(inten / 0.01));
+			printf("DBG: I=%f, rng=%f\n", inten, lt->max_range);
 		}
 
 		child = child->next;

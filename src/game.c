@@ -125,8 +125,6 @@ void game_display(void)
 	draw_level(RPASS_LIGHT);
 	rend_end(rend, RPASS_LIGHT);
 
-	rend_lvl_debugvis();
-
 	game_swap_buffers();
 	assert(glGetError() == GL_NO_ERROR);
 }

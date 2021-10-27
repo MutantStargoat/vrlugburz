@@ -17,6 +17,8 @@ struct light {
 		float phase;
 	} flicker;
 
+	float max_range;
+
 	struct light *next;
 };
 
