@@ -113,10 +113,11 @@ void game_display(void)
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_matrix);
 
+	cgm_midentity(view_matrix);
+	cgm_mpretranslate(view_matrix, 0, 0, -cam_dist);
+	cgm_mpremul(view_matrix, player.view_xform);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(0, 0, -cam_dist);
-	glMultMatrixf(player.view_xform);
+	glLoadMatrixf(view_matrix);
 
 	rend_begin(rend, RPASS_GEOM);
 	draw_level(RPASS_GEOM);

@@ -2,12 +2,10 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <errno.h>
 #include <float.h>
 #include "opengl.h"
 #include "mesh.h"
-
-static int update_mesh_vbo(struct mesh *m);
-static int update_meshgroup_vbo(struct meshgroup *mg);
 
 void init_mesh(struct mesh *m)
 {
@@ -287,7 +285,7 @@ void draw_meshgroup(struct meshgroup *mg)
 	glDisableVertexAttribArray(MESH_ATTR_TEXCOORD);
 }
 
-static int update_mesh_vbo(struct mesh *m)
+int update_mesh_vbo(struct mesh *m)
 {
 	if(m->num_verts <= 0) return -1;
 
@@ -310,7 +308,7 @@ static int update_mesh_vbo(struct mesh *m)
 	return 0;
 }
 
-static int update_meshgroup_vbo(struct meshgroup *mg)
+int update_meshgroup_vbo(struct meshgroup *mg)
 {
 	int i, j, idx0 = 0;
 	struct vertex *varr, *vptr;
@@ -386,4 +384,53 @@ void xform_mesh(struct mesh *mesh, float *mat)
 		cgm_vmul_m3v3(&mesh->varr[i].norm, mat);
 		cgm_vmul_m3v3(&mesh->varr[i].tang, mat);
 	}
+}
+
+int dump_mesh(struct mesh *m, const char *fname)
+{
+	int i, j;
+	FILE *fp;
+	struct vertex *vptr;
+	unsigned int *iptr, idx;
+
+	if(!(fp = fopen(fname, "wb"))) {
+		fprintf(stderr, "dump_mesh(%s) failed: %s\n", fname, strerror(errno));
+		return -1;
+	}
+
+	if(m->name && *m->name) {
+		fprintf(fp, "o %s\n", m->name);
+	}
+
+	vptr = m->varr;
+	for(i=0; i<m->num_verts; i++) {
+		fprintf(fp, "v %g %g %g\n", vptr->pos.x, vptr->pos.y, vptr->pos.z);
+		fprintf(fp, "vn %g %g %g\n", vptr->norm.x, vptr->norm.y, vptr->norm.z);
+		fprintf(fp, "vt %g %g\n", vptr->tex.x, vptr->tex.y);
+		vptr++;
+	}
+
+	if(m->num_idx > 0) {
+		iptr = m->iarr;
+		for(i=0; i<m->num_idx; i++) {
+			fputc('f', fp);
+			for(j=0; j<3; j++) {
+				idx = *iptr++ + 1;
+				fprintf(fp, " %d/%d/%d", idx, idx, idx);
+			}
+			fputc('\n', fp);
+		}
+	} else {
+		for(i=0; i<m->num_verts/3; i++) {
+			fputc('f', fp);
+			for(j=0; j<3; j++) {
+				idx = i * 3 + j + 1;
+				fprintf(fp, " %d/%d/%d", idx, idx, idx);
+			}
+			fputc('\n', fp);
+		}
+	}
+
+	fclose(fp);
+	return 0;
 }

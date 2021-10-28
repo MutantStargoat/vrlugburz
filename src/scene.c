@@ -140,15 +140,31 @@ void copy_scene(struct scene *dst, struct scene *src)
 	struct light *lt;
 	struct material *mtl;
 	struct rbtree *objmap;
+	struct rbnode *rbnode;
 
 	objmap = rb_create(RB_KEY_ADDR);
 
 	dst->fname = src->fname ? strdup_nf(src->fname) : 0;
 
+	for(i=0; i<darr_size(src->mtl); i++) {
+		if(src->mtl[i]) {
+			mtl = malloc_nf(sizeof *mtl);
+			*mtl = *src->mtl[i];
+			mtl->name = src->mtl[i]->name ? strdup_nf(src->mtl[i]->name) : 0;
+			mtl->next = 0;
+			add_scene_material(dst, mtl);
+
+			rb_insert(objmap, src->mtl[i], mtl);
+		}
+	}
+
 	for(i=0; i<darr_size(src->meshes); i++) {
 		if(src->meshes[i]) {
 			mesh = malloc_nf(sizeof *mesh);
 			copy_mesh(mesh, src->meshes[i]);
+			if((rbnode = rb_find(objmap, src->meshes[i]->mtl))) {
+				mesh->mtl = rbnode->data;
+			}
 			add_scene_mesh(dst, mesh);
 
 			rb_insert(objmap, src->meshes[i], mesh);
@@ -163,19 +179,10 @@ void copy_scene(struct scene *dst, struct scene *src)
 			lt->pos = src->lights[i]->pos;
 			lt->color = src->lights[i]->color;
 			lt->flicker = src->lights[i]->flicker;
+			lt->max_range = src->lights[i]->max_range;
 			add_scene_light(dst, lt);
 
 			rb_insert(objmap, src->lights[i], lt);
-		}
-	}
-
-	for(i=0; i<darr_size(src->mtl); i++) {
-		if(src->mtl[i]) {
-			mtl = malloc_nf(sizeof *mtl);
-			*mtl = *src->mtl[i];
-			mtl->name = src->mtl[i]->name ? strdup_nf(src->mtl[i]->name) : 0;
-			mtl->next = 0;
-			add_scene_material(dst, mtl);
 		}
 	}
 
@@ -318,7 +325,7 @@ static struct snode *copy_snode_tree(struct snode *src, struct rbtree *objmap)
 
 	node = alloc_snode();
 
-	/* objmap contains mappings between mesh/light pointers in the original
+	/* objmap contains mappings between mesh/light/material pointers in the original
 	 * node tree, and the node tree of the scene we're creating.  If no mapping
 	 * is found for any given object, or no objmap is provided, then the
 	 * pointers are copied to the new tree

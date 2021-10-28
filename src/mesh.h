@@ -93,6 +93,12 @@ int add_meshgroup_mesh(struct meshgroup *mg, struct mesh *m);
 void draw_mesh(struct mesh *m);
 void draw_meshgroup(struct meshgroup *mg);
 
+int update_mesh_vbo(struct mesh *m);
+int update_meshgroup_vbo(struct meshgroup *mg);
+
 void xform_mesh(struct mesh *mesh, float *mat);
+
+
+int dump_mesh(struct mesh *m, const char *fname);
 
 #endif	/* MESH_H_ */

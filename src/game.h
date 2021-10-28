@@ -29,6 +29,8 @@ int input_state[MAX_INP];
 int win_width, win_height;
 float win_aspect;
 
+float view_matrix[16], proj_matrix[16];
+
 int game_init(void);
 void game_shutdown(void);
 

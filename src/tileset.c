@@ -94,6 +94,9 @@ int load_tileset(struct tileset *tset, const char *fname)
 					}
 					add_scene_mesh(&tile->scn, mesh);
 					scn.meshes[i] = 0;
+
+					/* also copy used materials */
+					mesh->mtl = 0;	/* XXX */
 				}
 			}
 
