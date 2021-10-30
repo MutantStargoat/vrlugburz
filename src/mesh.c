@@ -12,6 +12,7 @@ void init_mesh(struct mesh *m)
 {
 	memset(m, 0, sizeof *m);
 	cgm_midentity(m->xform);
+	cgm_vcons(&m->mtl.color, 1, 1, 1);
 }
 
 void destroy_mesh(struct mesh *m)
@@ -21,6 +22,7 @@ void destroy_mesh(struct mesh *m)
 	free(m->name);
 	free(m->varr);
 	free(m->iarr);
+	free(m->mtl.name);
 
 	if(m->vbo) {
 		glDeleteBuffers(1, &m->vbo);
@@ -35,13 +37,9 @@ void clear_mesh(struct mesh *m)
 	free(m->name);
 	free(m->varr);
 	free(m->iarr);
+	free(m->mtl.name);
 
-	m->name = 0;
-	m->varr = 0;
-	m->iarr = 0;
-	m->num_verts = m->max_verts = m->num_idx = m->max_idx = 0;
-	m->mtl = 0;
-	m->bbvalid = m->vbovalid = 0;
+	init_mesh(m);
 }
 
 int copy_mesh(struct mesh *dest, struct mesh *src)
@@ -71,6 +69,7 @@ int copy_mesh(struct mesh *dest, struct mesh *src)
 		memcpy(dest->iarr, src->iarr, src->num_idx * sizeof *dest->iarr);
 	}
 
+	copy_material(&dest->mtl, &src->mtl);
 	return 0;
 }
 
@@ -80,7 +79,6 @@ void copy_material(struct material *dest, struct material *src)
 	if(src->name) {
 		dest->name = strdup_nf(src->name);
 	}
-	dest->next = 0;
 }
 
 void init_meshgroup(struct meshgroup *mg)

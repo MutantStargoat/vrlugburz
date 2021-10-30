@@ -6,7 +6,6 @@
 #include "level.h"
 #include "fs.h"
 #include "util.h"
-#include "rbtree.h"
 
 static struct tileset *tset_list;
 
@@ -17,13 +16,10 @@ int load_tileset(struct tileset *tset, const char *fname)
 	const char *str, *prefix;
 	char *path;
 	struct mesh *mesh;
-	struct material *mtl;
 	struct tile *tile;
 	int type;
 	float xform[16], *vec;
 	struct scene scn;
-	struct rbtree *mtlmap;
-	struct rbnode *rbn;
 
 	memset(tset, 0, sizeof *tset);
 
@@ -81,8 +77,6 @@ int load_tileset(struct tileset *tset, const char *fname)
 			}
 			tile->type = type;
 
-			mtlmap = rb_create(RB_KEY_ADDR);
-
 			cgm_midentity(xform);
 			if((vec = ts_get_attr_vec(node, "pos", 0))) {
 				cgm_mtranslation(xform, -vec[0], -vec[1], -vec[2]);
@@ -100,18 +94,6 @@ int load_tileset(struct tileset *tset, const char *fname)
 					}
 					add_scene_mesh(&tile->scn, mesh);
 					scn.meshes[i] = 0;
-
-					/* also copy material if needed */
-					if(mesh->mtl) {
-						if(!(rbn = rb_find(mtlmap, mesh->mtl))) {
-							mtl = malloc_nf(sizeof *mtl);
-							copy_material(mtl, mesh->mtl);
-							rb_insert(mtlmap, mesh->mtl, mtl);
-						} else {
-							mtl = rbn->data;
-						}
-						mesh->mtl = mtl;
-					}
 				}
 			}
 
@@ -126,14 +108,6 @@ int load_tileset(struct tileset *tset, const char *fname)
 					scn.lights[i] = 0;
 				}
 			}
-
-			/* add all new materials to the scene */
-			rb_begin(mtlmap);
-			while((rbn = rb_next(mtlmap))) {
-				add_scene_material(&tile->scn, rbn->data);
-			}
-
-			rb_free(mtlmap);
 
 			tile->next = tset->tiles;
 			tset->tiles = tile;

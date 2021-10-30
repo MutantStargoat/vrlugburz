@@ -101,7 +101,6 @@ int init_scene(struct scene *scn)
 	scn->root = malloc_nf(sizeof *scn->root);
 	scn->meshes = darr_alloc(0, sizeof *scn->meshes);
 	scn->lights = darr_alloc(0, sizeof *scn->lights);
-	scn->mtl = darr_alloc(0, sizeof *scn->mtl);
 
 	init_snode(scn->root);
 	return 0;
@@ -124,14 +123,6 @@ void destroy_scene(struct scene *scn)
 	}
 	darr_free(scn->lights);
 
-	for(i=0; i<darr_size(scn->mtl); i++) {
-		if(scn->mtl[i]) {
-			free(scn->mtl[i]->name);
-			free(scn->mtl[i]);
-		}
-	}
-	darr_free(scn->mtl);
-
 	free_snode_tree(scn->root);
 }
 
@@ -140,31 +131,16 @@ void copy_scene(struct scene *dst, struct scene *src)
 	int i;
 	struct mesh *mesh;
 	struct light *lt;
-	struct material *mtl;
 	struct rbtree *objmap;
-	struct rbnode *rbnode;
 
 	objmap = rb_create(RB_KEY_ADDR);
 
 	dst->fname = src->fname ? strdup_nf(src->fname) : 0;
 
-	for(i=0; i<darr_size(src->mtl); i++) {
-		if(src->mtl[i]) {
-			mtl = malloc_nf(sizeof *mtl);
-			copy_material(mtl, src->mtl[i]);
-			add_scene_material(dst, mtl);
-
-			rb_insert(objmap, src->mtl[i], mtl);
-		}
-	}
-
 	for(i=0; i<darr_size(src->meshes); i++) {
 		if(src->meshes[i]) {
 			mesh = malloc_nf(sizeof *mesh);
 			copy_mesh(mesh, src->meshes[i]);
-			if((rbnode = rb_find(objmap, src->meshes[i]->mtl))) {
-				mesh->mtl = rbnode->data;
-			}
 			add_scene_mesh(dst, mesh);
 
 			rb_insert(objmap, src->meshes[i], mesh);
@@ -200,11 +176,6 @@ void add_scene_light(struct scene *scn, struct light *lt)
 	darr_push(scn->lights, &lt);
 }
 
-void add_scene_material(struct scene *scn, struct material *mtl)
-{
-	darr_push(scn->mtl, &mtl);
-}
-
 void add_scene_node(struct scene *scn, struct snode *sn)
 {
 	anm_link_node(&scn->root->anm, &sn->anm);
@@ -229,18 +200,6 @@ struct mesh *find_scene_mesh_prefix(struct scene *scn, const char *prefix)
 	for(i=0; i<num; i++) {
 		if(match_prefix(scn->meshes[i]->name, prefix)) {
 			return scn->meshes[i];
-		}
-	}
-	return 0;
-}
-
-struct material *find_scene_material(struct scene *scn, const char *name)
-{
-	int i, num = darr_size(scn->mtl);
-
-	for(i=0; i<num; i++) {
-		if(strcmp(scn->mtl[i]->name, name) == 0) {
-			return scn->mtl[i];
 		}
 	}
 	return 0;

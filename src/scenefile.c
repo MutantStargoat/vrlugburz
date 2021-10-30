@@ -32,7 +32,8 @@ static char *cleanline(char *s);
 static char *parse_idx(char *ptr, int *idx, int arrsz);
 static char *parse_face_vert(char *ptr, struct facevertex *fv, int numv, int numt, int numn);
 
-static int load_mtllib(struct scene *scn, const char *path_prefix, const char *mtlfname);
+static struct objmtl *load_mtllib(const char *path_prefix, const char *mtlfname);
+static struct objmtl *find_material(struct objmtl *mlist, const char *name);
 static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_prefix);
 
 static int cmp_facevert(const void *ap, const void *bp);
@@ -49,9 +50,9 @@ int load_scenefile(struct scene *scn, const char *fname)
 	cgm_vec2 *tarr = 0;
 	struct facevertex fv[4];
 	struct mesh *mesh = 0;
-	struct material *mtl = 0;
 	char *sep;
 	struct rbtree *rbtree = 0;
+	struct objmtl *mtllist = 0, *mtl = 0;
 
 	init_scene(scn);
 
@@ -149,7 +150,7 @@ int load_scenefile(struct scene *scn, const char *fname)
 		case 'o':
 		case 'g':
 			if(mesh->num_verts) {
-				mesh->mtl = mtl;
+				if(mtl) conv_mtl(&mesh->mtl, mtl, path_prefix);
 				add_scene_mesh(scn, mesh);
 
 				if(!(mesh = malloc(sizeof *mesh))) {
@@ -164,13 +165,13 @@ int load_scenefile(struct scene *scn, const char *fname)
 
 		case 'm':
 			if(memcmp(line, "mtllib", 6) == 0 && (line = cleanline(line + 6))) {
-				load_mtllib(scn, path_prefix, line);
+				mtllist = load_mtllib(path_prefix, line);
 			}
 			break;
 
 		case 'u':
 			if(memcmp(line, "usemtl", 6) == 0 && (line = cleanline(line + 6))) {
-				mtl = find_scene_material(scn, line);
+				mtl = find_material(mtllist, line);
 			}
 			break;
 
@@ -180,7 +181,7 @@ int load_scenefile(struct scene *scn, const char *fname)
 	}
 
 	if(mesh->num_verts) {
-		mesh->mtl = mtl;
+		if(mtl) conv_mtl(&mesh->mtl, mtl, path_prefix);
 		add_scene_mesh(scn, mesh);
 	} else {
 		free(mesh);
@@ -199,6 +200,13 @@ int load_scenefile(struct scene *scn, const char *fname)
 fail:
 		free(scn->fname);
 		scn->fname = 0;
+	}
+
+	while(mtllist) {
+		mtl = mtllist;
+		mtllist = mtllist->next;
+		free(mtl->name);
+		free(mtl);
 	}
 
 	fclose(fp);
@@ -305,12 +313,11 @@ static char *parse_face_vert(char *ptr, struct facevertex *fv, int numv, int num
 	return (!*ptr || isspace(*ptr)) ? ptr : 0;
 }
 
-static int load_mtllib(struct scene *scn, const char *path_prefix, const char *mtlfname)
+static struct objmtl *load_mtllib(const char *path_prefix, const char *mtlfname)
 {
 	FILE *fp;
 	char buf[256], *line;
-	struct objmtl om = {0};
-	struct material *mtl = 0;
+	struct objmtl *mlist = 0, *mtail = 0, *mtl = 0;
 
 	if(path_prefix && *path_prefix) {
 		sprintf(buf, "%s/%s", path_prefix, mtlfname);
@@ -319,7 +326,7 @@ static int load_mtllib(struct scene *scn, const char *path_prefix, const char *m
 	}
 
 	if(!(fp = fopen(buf, "rb"))) {
-		return -1;
+		return 0;
 	}
 
 	while(fgets(buf, sizeof buf, fp)) {
@@ -328,52 +335,56 @@ static int load_mtllib(struct scene *scn, const char *path_prefix, const char *m
 		}
 
 		if(memcmp(line, "newmtl", 6) == 0) {
-			if(mtl) {
-				conv_mtl(mtl, &om, path_prefix);
-				add_scene_material(scn, mtl);
-				printf("adding material: %s\n", mtl->name);
-			}
 			mtl = calloc_nf(1, sizeof *mtl);
 
-			memset(&om, 0, sizeof om);
-
 			if((line = cleanline(line + 6))) {
-				om.name = strdup_nf(line);
+				mtl->name = strdup_nf(line);
 			}
+			if(mlist) {
+				mtail->next = mtl;
+			} else {
+				mlist = mtail = mtl;
+			}
+			printf("adding material: %s\n", mtl->name);
 
 		} else if(memcmp(line, "Kd", 2) == 0) {
-			sscanf(line + 3, "%f %f %f", &om.kd.x, &om.kd.y, &om.kd.z);
+			sscanf(line + 3, "%f %f %f", &mtl->kd.x, &mtl->kd.y, &mtl->kd.z);
 		} else if(memcmp(line, "Ks", 2) == 0) {
-			sscanf(line + 3, "%f %f %f", &om.ks.x, &om.ks.y, &om.ks.z);
+			sscanf(line + 3, "%f %f %f", &mtl->ks.x, &mtl->ks.y, &mtl->ks.z);
 		} else if(memcmp(line, "Ke", 2) == 0) {
-			sscanf(line + 3, "%f %f %f", &om.ke.x, &om.ke.y, &om.ke.z);
+			sscanf(line + 3, "%f %f %f", &mtl->ke.x, &mtl->ke.y, &mtl->ke.z);
 		} else if(memcmp(line, "Ni", 2) == 0) {
-			om.ior = atof(line + 3);
+			mtl->ior = atof(line + 3);
 		} else if(line[0] == 'd' && isspace(line[1])) {
-			om.alpha = atof(line + 2);
+			mtl->alpha = atof(line + 2);
 		} else if(memcmp(line, "map_Kd", 6) == 0) {
 			if((line = cleanline(line + 6))) {
-				om.map_kd = strdup_nf(line);
+				mtl->map_kd = strdup_nf(line);
 			}
 		} else if(memcmp(line, "map_Ke", 6) == 0) {
 			if((line = cleanline(line + 6))) {
-				om.map_ke = strdup_nf(line);
+				mtl->map_ke = strdup_nf(line);
 			}
 		} else if(memcmp(line, "map_d", 5) == 0) {
 			if((line = cleanline(line + 5))) {
-				om.map_alpha = strdup_nf(line);
+				mtl->map_alpha = strdup_nf(line);
 			}
 		}
 	}
 
-	if(mtl) {
-		conv_mtl(mtl, &om, path_prefix);
-		add_scene_material(scn, mtl);
-		printf("adding material: %s\n", mtl->name);
-	}
-
 	fclose(fp);
-	return 0;
+	return mlist;
+}
+
+static struct objmtl *find_material(struct objmtl *mlist, const char *name)
+{
+	while(mlist) {
+		if(strcmp(mlist->name, name) == 0) {
+			break;
+		}
+		mlist = mlist->next;
+	}
+	return mlist;
 }
 
 static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_prefix)
@@ -382,7 +393,7 @@ static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_pr
 	int len, prefix_len, maxlen = 0;
 
 	memset(mm, 0, sizeof *mm);
-	mm->name = om->name;
+	mm->name = strdup_nf(om->name);
 	mm->color = om->kd;
 	mm->spec = om->ks;
 	mm->shininess = om->shin;
@@ -402,10 +413,6 @@ static void conv_mtl(struct material *mm, struct objmtl *om, const char *path_pr
 		strcpy(suffix, om->map_kd);
 		mm->tex[TEX_DIFFUSE] = get_texture(fname);
 	}
-
-	free(om->map_kd);
-	free(om->map_ke);
-	free(om->map_alpha);
 }
 
 static int cmp_facevert(const void *ap, const void *bp)

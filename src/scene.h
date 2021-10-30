@@ -43,7 +43,6 @@ struct scene {
 	/* dynamic arrays */
 	struct mesh **meshes;
 	struct light **lights;
-	struct material **mtl;
 
 	struct snode *root;
 };
@@ -71,13 +70,11 @@ void copy_scene(struct scene *dst, struct scene *src);
 
 void add_scene_mesh(struct scene *scn, struct mesh *m);
 void add_scene_light(struct scene *scn, struct light *lt);
-void add_scene_material(struct scene *scn, struct material *mtl);
 /* just adds the node as a child of root */
 void add_scene_node(struct scene *scn, struct snode *sn);
 
 struct mesh *find_scene_mesh(struct scene *scn, const char *name);
 struct mesh *find_scene_mesh_prefix(struct scene *scn, const char *prefix);
-struct material *find_scene_material(struct scene *scn, const char *name);
 struct snode *find_scene_node(struct scene *scn, const char *name);
 
 void upd_scene_xform(struct scene *scn, long tm);

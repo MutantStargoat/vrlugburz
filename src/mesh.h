@@ -35,8 +35,6 @@ struct material {
 	float shininess;
 
 	struct texture *tex[NUM_TEX_SLOTS];
-
-	struct material *next;
 };
 
 struct mesh {
@@ -49,7 +47,7 @@ struct mesh {
 	int num_verts, num_idx;
 	int max_verts, max_idx;
 
-	struct material *mtl;
+	struct material mtl;
 
 	struct aabox bb;
 	int bbvalid;

@@ -192,8 +192,8 @@ static void geom_pass(struct scene *scn)
 
 		for(j=0; j<NUM_TEX_SLOTS; j++) {
 			glActiveTexture(GL_TEXTURE0 + j);
-			if(mesh->mtl && mesh->mtl->tex[j]) {
-				glBindTexture(GL_TEXTURE_2D, mesh->mtl->tex[j]->tex);
+			if(mesh->mtl.tex[j]) {
+				glBindTexture(GL_TEXTURE_2D, mesh->mtl.tex[j]->tex);
 			} else {
 				glBindTexture(GL_TEXTURE_2D, deftex[j]);
 			}
