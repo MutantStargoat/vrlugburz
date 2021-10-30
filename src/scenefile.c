@@ -117,6 +117,7 @@ int load_scenefile(struct scene *scn, const char *fname)
 				if(tarr_size >= tarr_max) {
 					GROW_ARRAY(tarr, tarr_max, goto fail);
 				}
+				v.y = 1.0f - v.y;
 				tarr[tarr_size++] = *(cgm_vec2*)&v;
 			} else if(line[1] == 'n' && isspace(line[2])) {
 				if(narr_size >= narr_max) {
