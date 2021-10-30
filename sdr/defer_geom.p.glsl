@@ -5,7 +5,7 @@ varying vec2 vtex;
 
 void main()
 {
-	vec3 color = texture2D(tex_color, gl_TexCoord[0].st).rgb;
+	vec3 color = texture2D(tex_color, vtex).rgb;
 
 	gl_FragData[0].xyz = vpos;
 	gl_FragData[1].xyz = vnorm * 0.5 + 0.5;

@@ -78,6 +78,8 @@ void destroy_mesh(struct mesh *m);
 void clear_mesh(struct mesh *m);
 int copy_mesh(struct mesh *dest, struct mesh *src);
 
+void copy_material(struct material *dest, struct material *src);
+
 void init_meshgroup(struct meshgroup *mg);
 void destroy_meshgroup(struct meshgroup *mg);
 void clear_meshgroup(struct meshgroup *mg);

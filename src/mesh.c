@@ -6,6 +6,7 @@
 #include <float.h>
 #include "opengl.h"
 #include "mesh.h"
+#include "util.h"
 
 void init_mesh(struct mesh *m)
 {
@@ -51,13 +52,11 @@ int copy_mesh(struct mesh *dest, struct mesh *src)
 		dest->name = strdup(src->name);
 	}
 
-	if(src->max_verts && !(dest->varr = malloc(src->max_verts * sizeof *dest->varr))) {
-		return -1;
+	if(src->max_verts) {
+		dest->varr = malloc_nf(src->max_verts * sizeof *dest->varr);
 	}
-	if(src->max_idx && !(dest->iarr = malloc(src->max_idx * sizeof *dest->iarr))) {
-		free(dest->varr);
-		dest->varr = 0;
-		return -1;
+	if(src->max_idx) {
+		dest->iarr = malloc_nf(src->max_idx * sizeof *dest->iarr);
 	}
 
 	dest->num_verts = src->num_verts;
@@ -73,6 +72,15 @@ int copy_mesh(struct mesh *dest, struct mesh *src)
 	}
 
 	return 0;
+}
+
+void copy_material(struct material *dest, struct material *src)
+{
+	*dest = *src;
+	if(src->name) {
+		dest->name = strdup_nf(src->name);
+	}
+	dest->next = 0;
 }
 
 void init_meshgroup(struct meshgroup *mg)

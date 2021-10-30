@@ -125,8 +125,10 @@ void destroy_scene(struct scene *scn)
 	darr_free(scn->lights);
 
 	for(i=0; i<darr_size(scn->mtl); i++) {
-		free(scn->mtl[i]->name);
-		free(scn->mtl[i]);
+		if(scn->mtl[i]) {
+			free(scn->mtl[i]->name);
+			free(scn->mtl[i]);
+		}
 	}
 	darr_free(scn->mtl);
 
@@ -149,9 +151,7 @@ void copy_scene(struct scene *dst, struct scene *src)
 	for(i=0; i<darr_size(src->mtl); i++) {
 		if(src->mtl[i]) {
 			mtl = malloc_nf(sizeof *mtl);
-			*mtl = *src->mtl[i];
-			mtl->name = src->mtl[i]->name ? strdup_nf(src->mtl[i]->name) : 0;
-			mtl->next = 0;
+			copy_material(mtl, src->mtl[i]);
 			add_scene_material(dst, mtl);
 
 			rb_insert(objmap, src->mtl[i], mtl);

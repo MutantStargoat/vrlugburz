@@ -55,6 +55,7 @@ void game_shutdown(void)
 	rend_destroy();
 	destroy_level(&lvl);
 	free_all_tilesets();
+	free_props();
 }
 
 #define STEP_INTERVAL	250

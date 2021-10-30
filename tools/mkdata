@@ -9,7 +9,10 @@ cp datasrc/test.props data
 cp datasrc/walls.obj data
 cp datasrc/walls.mtl data
 cp datasrc/objects.obj data
+cp datasrc/objects.mtl data
 cp datasrc/tex/sfloor_norm.png data/tex
 cp datasrc/tex/sfloor1b_diff.jpg data/tex
 cp datasrc/tex/sfloor1b_spec.jpg data/tex
 cp datasrc/tex/stonetex.jpg data/tex
+cp datasrc/tex/barrel.jpg data/tex
+cp datasrc/tex/torch.jpg data/tex

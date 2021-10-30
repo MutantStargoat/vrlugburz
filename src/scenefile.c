@@ -159,7 +159,7 @@ int load_scenefile(struct scene *scn, const char *fname)
 				init_mesh(mesh);
 			}
 			if(mesh->name) free(mesh->name);
-			mesh->name = strdup(cleanline(line + 2));
+			mesh->name = strdup_nf(cleanline(line + 2));
 			break;
 
 		case 'm':
@@ -331,13 +331,14 @@ static int load_mtllib(struct scene *scn, const char *path_prefix, const char *m
 			if(mtl) {
 				conv_mtl(mtl, &om, path_prefix);
 				add_scene_material(scn, mtl);
+				printf("adding material: %s\n", mtl->name);
 			}
-			mtl = calloc(1, sizeof *mtl);
+			mtl = calloc_nf(1, sizeof *mtl);
 
 			memset(&om, 0, sizeof om);
 
 			if((line = cleanline(line + 6))) {
-				om.name = strdup(line);
+				om.name = strdup_nf(line);
 			}
 
 		} else if(memcmp(line, "Kd", 2) == 0) {
@@ -352,15 +353,15 @@ static int load_mtllib(struct scene *scn, const char *path_prefix, const char *m
 			om.alpha = atof(line + 2);
 		} else if(memcmp(line, "map_Kd", 6) == 0) {
 			if((line = cleanline(line + 6))) {
-				om.map_kd = strdup(line);
+				om.map_kd = strdup_nf(line);
 			}
 		} else if(memcmp(line, "map_Ke", 6) == 0) {
 			if((line = cleanline(line + 6))) {
-				om.map_ke = strdup(line);
+				om.map_ke = strdup_nf(line);
 			}
 		} else if(memcmp(line, "map_d", 5) == 0) {
 			if((line = cleanline(line + 5))) {
-				om.map_alpha = strdup(line);
+				om.map_alpha = strdup_nf(line);
 			}
 		}
 	}
@@ -368,6 +369,7 @@ static int load_mtllib(struct scene *scn, const char *path_prefix, const char *m
 	if(mtl) {
 		conv_mtl(mtl, &om, path_prefix);
 		add_scene_material(scn, mtl);
+		printf("adding material: %s\n", mtl->name);
 	}
 
 	fclose(fp);

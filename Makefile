@@ -11,7 +11,7 @@ inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext -Ilibs/imago/src
 libdir = -Llibs/treestore -Llibs/imago -Llibs/drawtext -Llibs/anim
 
 CFLAGS = $(warn) $(opt) $(dbg) $(def) $(inc) -fcommon -MMD
-LDFLAGS = $(libdir) -ldrawtext -limago -ltreestore -lanim -lgoatvr $(libgl) -lm
+LDFLAGS = $(libdir) -ldrawtext -limago -ltreestore -lanim -lgoatvr $(libgl) -lm -ldl
 
 libgl = -lGL -lX11 -lXext
 

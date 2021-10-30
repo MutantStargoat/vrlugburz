@@ -102,6 +102,15 @@ int init_opengl(void)
 		glcaps.caps |= GLCAPS_FB_SRGB;
 	}
 
+	if((glcaps.ver_major == 2 && glcaps.ver_minor >= 1) || glcaps.ver_major >= 3 ||
+			strstr(glext, "GL_EXT_texture_sRGB")) {
+		glcaps.caps |= GLCAPS_TEX_SRGB;
+	}
+
+	if(glcaps.ver_major >= 3 || strstr(glext, "GL_ARB_texture_float")) {
+		glcaps.caps |= GLCAPS_TEX_FLOAT;
+	}
+
 	if(strstr(glext, "GL_ARB_debug_output")) {
 		glcaps.caps |= GLCAPS_DEBUG;
 
