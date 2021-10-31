@@ -8,7 +8,7 @@
 
 int init_rtarg(struct render_target *rt, int xsz, int ysz, int mrtcount)
 {
-	int i, st;
+	int i;
 
 	rt->width = xsz;
 	rt->height = ysz;
@@ -39,10 +39,6 @@ int init_rtarg(struct render_target *rt, int xsz, int ysz, int mrtcount)
 	glBindRenderbuffer(GL_RENDERBUFFER, rt->zbuf);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, xsz, ysz);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rt->zbuf);
-
-	if((st = glCheckFramebufferStatus(GL_FRAMEBUFFER)) != GL_FRAMEBUFFER_COMPLETE) {
-		fprintf(stderr, "incomplete FBO\n");
-	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	return 0;

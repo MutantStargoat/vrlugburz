@@ -9,7 +9,7 @@ void main()
 	vec3 color = vec3(1.0) - exp(-texel * exposure);
 
 #ifdef FB_NOT_SRGB
-	gl_FragColor = vec4(pow(color, 1.0 / 2.2), 1.0);
+	gl_FragColor = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
 #else
 	gl_FragColor = vec4(color, 1.0);
 #endif

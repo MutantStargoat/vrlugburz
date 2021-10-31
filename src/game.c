@@ -36,11 +36,20 @@ int game_init(void)
 		return -1;
 	}
 
-	if(glcaps.caps & GLCAPS_FB_SRGB) {
-		glEnable(GL_FRAMEBUFFER_SRGB);
-	}
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+
+	if(glcaps.caps & GLCAPS_FB_SRGB) {
+		glEnable(GL_FRAMEBUFFER_SRGB);
+	} else {
+		add_shader_header(GL_FRAGMENT_SHADER, "#define FB_NOT_SRGB");
+		printf("sRGB framebuffer is not supported, using post gamma fallback\n");
+	}
+	if(!(sdr_post = create_program_load("sdr/post.v.glsl", "sdr/post.p.glsl"))) {
+		return -1;
+	}
+	uloc_expose = get_uniform_loc(sdr_post, "exposure");
+	clear_shader_header(GL_FRAGMENT_SHADER);
 
 	if(rend_init() == -1) {
 		return -1;
@@ -50,11 +59,6 @@ int game_init(void)
 		fprintf(stderr, "failed to create %dx%d framebuffer\n", win_width, win_height);
 		return -1;
 	}
-	if(!(sdr_post = create_program_load("sdr/post.v.glsl", "sdr/post.p.glsl"))) {
-		return -1;
-	}
-	uloc_expose = get_uniform_loc(sdr_post, "exposure");
-
 
 	if(load_level(&lvl, "data/test.lvl") == -1) {
 		return -1;
