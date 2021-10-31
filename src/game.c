@@ -6,6 +6,8 @@
 #include "level.h"
 #include "player.h"
 #include "rend.h"
+#include "rtarg.h"
+#include "sdr.h"
 
 static void draw_level(int rpass);
 
@@ -23,19 +25,36 @@ static long prev_step, prev_turn;
 
 static int rend = REND_LEVEL;
 
+static struct render_target rtarg;
+static unsigned int sdr_post;
+static int uloc_expose;
+
+
 int game_init(void)
 {
 	if(init_opengl() == -1) {
 		return -1;
 	}
 
-	glEnable(GL_FRAMEBUFFER_SRGB);
+	if(glcaps.caps & GLCAPS_FB_SRGB) {
+		glEnable(GL_FRAMEBUFFER_SRGB);
+	}
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
 	if(rend_init() == -1) {
 		return -1;
 	}
+
+	if(init_rtarg(&rtarg, win_width, win_height, 1) == -1) {
+		fprintf(stderr, "failed to create %dx%d framebuffer\n", win_width, win_height);
+		return -1;
+	}
+	if(!(sdr_post = create_program_load("sdr/post.v.glsl", "sdr/post.p.glsl"))) {
+		return -1;
+	}
+	uloc_expose = get_uniform_loc(sdr_post, "exposure");
+
 
 	if(load_level(&lvl, "data/test.lvl") == -1) {
 		return -1;
@@ -99,14 +118,12 @@ void game_display(void)
 {
 	float dt;
 	static long prev_msec;
+	float sx, sy;
 
 	dt = (prev_msec - time_msec) / 1000.0f;
 	prev_msec = time_msec;
 
 	update(dt);
-
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	cgm_midentity(proj_matrix);
 	cgm_mperspective(proj_matrix, cgm_deg_to_rad(60), win_aspect, NEAR_CLIP, 500.0);
@@ -119,12 +136,47 @@ void game_display(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(view_matrix);
 
+	/* geometry pass */
 	rend_begin(rend, RPASS_GEOM);
 	draw_level(RPASS_GEOM);
 	rend_end(rend, RPASS_GEOM);
+
+	/* light pass */
+	bind_rtarg(&rtarg);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	rend_begin(rend, RPASS_LIGHT);
 	draw_level(RPASS_LIGHT);
 	rend_end(rend, RPASS_LIGHT);
+
+	/* post processing */
+	bind_rtarg(0);
+
+	glDisable(GL_DEPTH_TEST);
+
+	glUseProgram(sdr_post);
+	if(uloc_expose >= 0) {
+		glUniform1f(uloc_expose, 1.0f);
+	}
+	glBindTexture(GL_TEXTURE_2D, rtarg.tex[0]);
+
+	sx = (float)rtarg.width / rtarg.tex_width;
+	sy = (float)rtarg.height / rtarg.tex_height;
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0);
+	glVertex2f(-1, -1);
+	glTexCoord2f(sx, 0);
+	glVertex2f(1, -1);
+	glTexCoord2f(sx, sy);
+	glVertex2f(1, 1);
+	glTexCoord2f(0, sy);
+	glVertex2f(-1, 1);
+	glEnd();
+
+	glUseProgram(0);
+
+	glEnable(GL_DEPTH_TEST);
 
 	game_swap_buffers();
 	assert(glGetError() == GL_NO_ERROR);
@@ -192,6 +244,7 @@ static void draw_level(int rpass)
 void game_reshape(int x, int y)
 {
 	rend_reshape(x, y);
+	resize_rtarg(&rtarg, x, y);
 
 	glViewport(0, 0, x, y);
 	win_width = x;
