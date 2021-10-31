@@ -8,6 +8,8 @@
 #include "sdr.h"
 #include "noise.h"
 
+#define SPH_CIRC_RAD	1.32317
+
 static void destroy(void);
 static void reshape(int x, int y);
 static void begin(int pass);
@@ -75,7 +77,7 @@ struct renderer *init_rend_level(void)
 	/* icosahedron circuimscribed over a unit sphere, is inscribed in a sphere
 	 * with radius approximately 1.323169
 	 */
-	create_light_sphere(&sphmesh, 1.32317, 1);
+	create_light_sphere(&sphmesh, SPH_CIRC_RAD, 1);
 	update_mesh_vbo(&sphmesh);
 
 	/* generate default textures */
@@ -145,6 +147,7 @@ static void begin(int pass)
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
+		glDepthMask(0);
 
 		for(i=0; i<4; i++) {
 			glActiveTexture(GL_TEXTURE0 + i);
@@ -174,6 +177,7 @@ static void end(int pass)
 	case RPASS_LIGHT:
 		glUseProgram(0);
 		glDisable(GL_BLEND);
+		glDepthMask(1);
 
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
@@ -247,7 +251,7 @@ static void light_pass(struct scene *scn)
 			 * we're inside if the view space light position is within the
 			 * light's range plus the near clipping plane distance.
 			 */
-			range = lt->max_range + NEAR_CLIP;
+			range = lt->max_range * SPH_CIRC_RAD + NEAR_CLIP;
 			if(cgm_vlength_sq(&lpos) <= range * range) {
 				draw_light_fullscr();
 			} else {
