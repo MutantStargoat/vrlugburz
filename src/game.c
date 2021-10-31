@@ -39,7 +39,7 @@ int game_init(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	if(glcaps.caps & GLCAPS_FB_SRGB) {
+	if((glcaps.caps & GLCAPS_FB_SRGB) && win_srgb) {
 		glEnable(GL_FRAMEBUFFER_SRGB);
 	} else {
 		add_shader_header(GL_FRAGMENT_SHADER, "#define FB_NOT_SRGB");

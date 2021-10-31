@@ -24,6 +24,8 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_SRGB);
 	glutCreateWindow("lugburz VR");
 
+	win_srgb = glutGet(GLUT_WINDOW_SRGB);
+
 	glutDisplayFunc(display);
 	glutIdleFunc(idle);
 	glutReshapeFunc(game_reshape);

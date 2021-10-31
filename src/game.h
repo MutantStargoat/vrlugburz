@@ -30,6 +30,7 @@ int input_state[MAX_INP];
 
 int win_width, win_height;
 float win_aspect;
+int win_srgb;
 
 float world_matrix[16], view_matrix[16], proj_matrix[16];
 
