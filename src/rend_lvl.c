@@ -379,6 +379,8 @@ static void draw_light_sphere(struct light *lt)
 
 static void draw_light_fullscr(void)
 {
+	glDisable(GL_DEPTH_TEST);
+
 	glPushMatrix();
 	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
@@ -395,4 +397,6 @@ static void draw_light_fullscr(void)
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
+
+	glEnable(GL_DEPTH_TEST);
 }
