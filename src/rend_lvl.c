@@ -6,6 +6,7 @@
 #include "scene.h"
 #include "rtarg.h"
 #include "sdr.h"
+#include "noise.h"
 
 static void destroy(void);
 static void reshape(int x, int y);
@@ -219,7 +220,7 @@ static void light_pass(struct scene *scn)
 	int i, num = darr_size(scn->lights);
 	struct light *lt;
 	cgm_vec3 lpos;
-	float range;
+	float range, t, flicker;
 
 
 	for(i=0; i<num; i++) {
@@ -231,7 +232,15 @@ static void light_pass(struct scene *scn)
 				glUniform3f(uloc_lpos, lpos.x, lpos.y, lpos.z);
 			}
 			if(uloc_lcol >= 0) {
-				glUniform3f(uloc_lcol, lt->color.x, lt->color.y, lt->color.z);
+				if(lt->flicker.range > 0.0f) {
+					t = time_msec * lt->flicker.freq / 1000.0f + lt->flicker.phase;
+					flicker = 1.0 + noise1(t) * lt->flicker.range;
+					if(flicker < 0.0f) flicker = 0.0f;
+					glUniform3f(uloc_lcol, lt->color.x * flicker, lt->color.y * flicker,
+							lt->color.z * flicker);
+				} else {
+					glUniform3f(uloc_lcol, lt->color.x, lt->color.y, lt->color.z);
+				}
 			}
 
 			/* if we're inside the light's sphere, draw a fullscreen quad.

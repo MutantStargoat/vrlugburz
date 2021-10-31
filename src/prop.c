@@ -174,6 +174,10 @@ static int proc_prop_node(struct ts_node *node, struct scene *scn)
 
 			lt->max_range = ts_get_attr_num(child, "max_range", sqrt(inten / 0.01));
 			printf("DBG: I=%f, rng=%f\n", inten, lt->max_range);
+
+			lt->flicker.range = ts_get_attr_num(child, "flicker_range", 0.0f);
+			lt->flicker.freq = ts_get_attr_num(child, "flicker_freq", 1.0f);
+			lt->flicker.phase = ts_get_attr_num(child, "flicker_phase", 0.0f);
 		}
 
 		child = child->next;
