@@ -8,6 +8,6 @@ void main()
 	vec3 color = texture2D(tex_color, vtex).rgb;
 
 	gl_FragData[0].xyz = vpos;
-	gl_FragData[1].xyz = vnorm * 0.5 + 0.5;
+	gl_FragData[1].xyz = vnorm;
 	gl_FragData[2].xyz = color;
 }

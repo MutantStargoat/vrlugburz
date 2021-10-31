@@ -1,6 +1,8 @@
 #ifndef GAME_H_
 #define GAME_H_
 
+#define NEAR_CLIP	0.5f
+
 enum { DIR_N, DIR_E, DIR_S, DIR_W };
 
 enum {
@@ -29,7 +31,7 @@ int input_state[MAX_INP];
 int win_width, win_height;
 float win_aspect;
 
-float view_matrix[16], proj_matrix[16];
+float world_matrix[16], view_matrix[16], proj_matrix[16];
 
 int game_init(void);
 void game_shutdown(void);

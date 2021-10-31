@@ -18,6 +18,7 @@ static void blend_pass(struct scene *scn);
 
 static void create_light_sphere(struct mesh *mesh, float rad, int subdiv);
 static void draw_light_sphere(struct light *lt);
+static void draw_light_fullscr(void);
 
 
 static struct renderer rfunc = {
@@ -29,7 +30,7 @@ static struct renderer rfunc = {
 
 static struct render_target rtarg;
 static unsigned int sdr_geom, sdr_light;
-static int uloc_texscale, uloc_lpos;
+static int uloc_texscale, uloc_lpos, uloc_lcol;
 static struct mesh sphmesh;
 
 static unsigned int deftex[NUM_TEX_SLOTS];
@@ -62,6 +63,7 @@ struct renderer *init_rend_level(void)
 	set_uniform_int(sdr_light, "gtex[3]", 3);
 	uloc_texscale = get_uniform_loc(sdr_light, "tex_scale");
 	uloc_lpos = get_uniform_loc(sdr_light, "light_pos");
+	uloc_lcol = get_uniform_loc(sdr_light, "light_color");
 
 	if(init_rtarg(&rtarg, win_width, win_height, 4) == -1) {
 		free_program(sdr_geom);
@@ -127,6 +129,12 @@ static void begin(int pass)
 		break;
 
 	case RPASS_LIGHT:
+		/* TODO non-blit fallback */
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, rtarg.fbo);
+		glBlitFramebuffer(0, 0, win_width, win_height, 0, 0, win_width, win_height,
+				GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
 		glUseProgram(sdr_light);
 		if(uloc_texscale != -1) {
 			float sx = (float)rtarg.width / ((float)win_width * (float)rtarg.tex_width);
@@ -134,7 +142,6 @@ static void begin(int pass)
 			glUniform2f(uloc_texscale, sx, sy);
 		}
 
-		glCullFace(GL_FRONT);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 
@@ -165,7 +172,6 @@ static void end(int pass)
 
 	case RPASS_LIGHT:
 		glUseProgram(0);
-		glCullFace(GL_BACK);
 		glDisable(GL_BLEND);
 
 		glMatrixMode(GL_TEXTURE);
@@ -211,26 +217,35 @@ static void geom_pass(struct scene *scn)
 static void light_pass(struct scene *scn)
 {
 	int i, num = darr_size(scn->lights);
+	struct light *lt;
 	cgm_vec3 lpos;
+	float range;
 
-	glBindBuffer(GL_ARRAY_BUFFER, sphmesh.vbo);
-	glVertexPointer(3, GL_FLOAT, sizeof(struct vertex), 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glEnableClientState(GL_VERTEX_ARRAY);
 
 	for(i=0; i<num; i++) {
-		if(scn->lights[i]) {
+		if((lt = scn->lights[i])) {
+			lpos = scn->lights[i]->pos;
+			cgm_vmul_m4v3(&lpos, world_matrix);
+			cgm_vmul_m4v3(&lpos, view_matrix);
 			if(uloc_lpos >= 0) {
-				lpos = scn->lights[i]->pos;
-				/*cgm_vmul_m4v3(&lpos, view_matrix);*/
 				glUniform3f(uloc_lpos, lpos.x, lpos.y, lpos.z);
 			}
+			if(uloc_lcol >= 0) {
+				glUniform3f(uloc_lcol, lt->color.x, lt->color.y, lt->color.z);
+			}
 
-			draw_light_sphere(scn->lights[i]);
+			/* if we're inside the light's sphere, draw a fullscreen quad.
+			 * we're inside if the view space light position is within the
+			 * light's range plus the near clipping plane distance.
+			 */
+			range = lt->max_range + NEAR_CLIP;
+			if(cgm_vlength_sq(&lpos) <= range * range) {
+				draw_light_fullscr();
+			} else {
+				draw_light_sphere(scn->lights[i]);
+			}
 		}
 	}
-
-	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 static void blend_pass(struct scene *scn)
@@ -350,7 +365,34 @@ static void draw_light_sphere(struct light *lt)
 	glTranslatef(lt->pos.x, lt->pos.y, lt->pos.z);
 	glScalef(lt->max_range, lt->max_range, lt->max_range);
 
+	glBindBuffer(GL_ARRAY_BUFFER, sphmesh.vbo);
+	glVertexPointer(3, GL_FLOAT, sizeof(struct vertex), 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
 	glDrawArrays(GL_TRIANGLES, 0, sphmesh.num_verts);
 
+	glDisableClientState(GL_VERTEX_ARRAY);
+
+	glPopMatrix();
+}
+
+static void draw_light_fullscr(void)
+{
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glBegin(GL_QUADS);
+	glVertex2f(-1, -1);
+	glVertex2f(1, -1);
+	glVertex2f(1, 1);
+	glVertex2f(-1, 1);
+	glEnd();
+
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 }

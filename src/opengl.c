@@ -97,6 +97,10 @@ int init_opengl(void)
 		LOADPROC(PFNGLDRAWBUFFERSPROC, glDrawBuffers);
 	}
 
+	if(glcaps.ver_major >= 3 || strstr(glext, "GL_EXT_framebuffer_blit")) {
+		LOADPROC(PFNGLBLITFRAMEBUFFERPROC, glBlitFramebuffer);
+	}
+
 	if((glcaps.ver_major = 3 && glcaps.ver_minor >= 2) || glcaps.ver_major > 3 ||
 			strstr(glext, "GL_ARB_framebuffer_sRGB") || strstr(glext, "GL_EXT_framebuffer_sRGB")) {
 		glcaps.caps |= GLCAPS_FB_SRGB;

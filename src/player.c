@@ -76,7 +76,7 @@ void upd_player_xform(struct player *p)
 
 static void vis_visit(struct player *p, int cx, int cy, int *cvis)
 {
-	int i, j, nx, ny, dx, dy;
+	int i, j, nx, ny, dx, dy, abs_dx, abs_dy, maxdist;
 	struct level *lvl = p->lvl;
 	struct cell *cell;
 
@@ -90,17 +90,24 @@ static void vis_visit(struct player *p, int cx, int cy, int *cvis)
 		return;
 	}
 
+	maxdist = lvl->visdist > lvl->lightdist ? lvl->visdist : lvl->lightdist;
 	dx = cx - p->cx;
 	dy = cy - p->cy;
+	abs_dx = abs(dx);
+	abs_dy = abs(dy);
+	cell->dist = abs_dx > abs_dy ? abs_dx : abs_dy;
 	/* stop beyond the maximum visibility distance (manhattan) */
-	if(abs(dx) > lvl->visdist || abs(dy) > lvl->visdist) {
+	if(cell->dist > maxdist) {
 		return;
 	}
 
+	cell->visible = 1;
 	/* dot product */
 	if(step[p->dir][0] * dx + step[p->dir][1] * dy < 0) {
-		return;	/* cell is behind the player */
+		/* cell is behind the player */
+		cell->visible = 0;
 	}
+	/* TODO: add raycasting visibility */
 
 	cvis[cy * lvl->width + cx] = 1;		/* mark as visited before recursing */
 

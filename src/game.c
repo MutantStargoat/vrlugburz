@@ -18,7 +18,6 @@ int mouse_x, mouse_y;
 int bnstate[8];
 
 float cam_dist;
-float view_matrix[16], proj_matrix[16];
 
 static long prev_step, prev_turn;
 
@@ -106,11 +105,11 @@ void game_display(void)
 
 	update(dt);
 
-	glClearColor(0.1, 0.1, 0.1, 1);
+	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	cgm_midentity(proj_matrix);
-	cgm_mperspective(proj_matrix, cgm_deg_to_rad(60), win_aspect, 0.5, 500.0);
+	cgm_mperspective(proj_matrix, cgm_deg_to_rad(60), win_aspect, NEAR_CLIP, 500.0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(proj_matrix);
 
@@ -134,8 +133,8 @@ void game_display(void)
 static void draw_level(int rpass)
 {
 	struct cell *cell;
-	float xform[16];
 	static int last_rpass = INT_MAX;
+	float xform[16];
 	struct prop *prop;
 
 	if(!renderer[rend]->rendpass[rpass]) {
@@ -148,10 +147,14 @@ static void draw_level(int rpass)
 
 	cell = player.vis;
 	while(cell) {
-		cgm_mtranslation(xform, cell->x * lvl.cell_size, 0, -cell->y * lvl.cell_size);
+		if(rpass != RPASS_LIGHT && !cell->visible) {
+			cell = cell->next;
+			continue;
+		}
+		cgm_mtranslation(world_matrix, cell->x * lvl.cell_size, 0, -cell->y * lvl.cell_size);
 
 		glPushMatrix();
-		glMultMatrixf(xform);
+		glMultMatrixf(world_matrix);
 
 		if(cell->tile) {
 			cgm_mrotation_y(xform, cell->tilerot * M_PI / 2.0f);
@@ -162,6 +165,7 @@ static void draw_level(int rpass)
 				upd_scene_xform(&cell->tile->scn, time_msec);
 			}
 			rend_pass(rend, rpass, &cell->tile->scn);
+			glPopMatrix();
 
 			prop = cell->props;
 			while(prop) {
@@ -171,7 +175,6 @@ static void draw_level(int rpass)
 				rend_pass(rend, rpass, &prop->scn);
 				prop = prop->next;
 			}
-			glPopMatrix();
 		}
 
 		if(rpass < last_rpass) {

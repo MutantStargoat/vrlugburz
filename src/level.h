@@ -44,6 +44,9 @@ struct cell {
 	struct prop *props;
 	struct scene scn;
 
+	/* visibility information */
+	int dist, visible;
+
 	struct cell *next;
 };
 
@@ -62,7 +65,7 @@ struct level {
 	 */
 	struct scene scn;
 
-	int visdist;
+	int visdist, lightdist;
 };
 
 

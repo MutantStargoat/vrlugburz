@@ -343,6 +343,7 @@ static struct objmtl *load_mtllib(const char *path_prefix, const char *mtlfname)
 			}
 			if(mlist) {
 				mtail->next = mtl;
+				mtail = mtl;
 			} else {
 				mlist = mtail = mtl;
 			}
