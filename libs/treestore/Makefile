@@ -1,3 +1,4 @@
+sys ?= $(shell uname -s | sed 's/MINGW.*/mingw/')
 ifeq ($(sys), mingw)
 	obj = treestore.w32.o text.w32.o dynarr.w32.o
 	lib = ../w32/libtreestore.a

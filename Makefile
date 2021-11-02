@@ -3,14 +3,15 @@ obj = $(src:.c=.o)
 dep = $(src:.c=.d)
 bin = game
 
-#opt = -O3 -fno-strict-aliasing
+#opt = -O3 -ffast-math -fno-strict-aliasing
 dbg = -g
 warn = -pedantic -Wall
 def = -DMINIGLUT_USE_LIBC -DGLDEBUG
-inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext -Ilibs/imago/src
+inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext -Ilibs/imago/src -Ilibs/goatvr
 
 CFLAGS = $(warn) $(opt) $(dbg) $(def) $(inc) -fcommon -MMD
-LDFLAGS = $(libdir) $(libsys) $(libgl) -ldrawtext -limago -ltreestore -lanim -lgoatvr $(libc)
+LDFLAGS = $(libdir) $(libsys) $(libgl) $(libal) $(libvr) -ldrawtext -limago -ltreestore \
+		  -lanim -lgoatvr -lgmath $(libc)
 
 sys ?= $(shell uname -s | sed 's/MINGW.*/mingw/')
 ifeq ($(sys), mingw)
@@ -18,16 +19,20 @@ ifeq ($(sys), mingw)
 	bin = game.exe
 	libdir = -Llibs/w32
 	libgl = -lopengl32
-	libsys = -lmingw32 -lwinmm -mconsole
+	libal = -lopenal
+	libsys = -lmingw32 -lgdi32 -lwinmm -mconsole
 	libc = -lm
+	libvr = -lovr -lopenvr_api
 else
 	libdir = -Llibs
 	libgl = -lGL -lX11 -lXext
+	libal = -lopenal
 	libc = -lm -ldl
+	libvr = -lopenvr_api
 endif
 
 $(bin): $(obj)
-	$(CC) -o $@ $(obj) $(LDFLAGS)
+	$(CXX) -o $@ $(obj) $(LDFLAGS)
 
 -include $(dep)
 

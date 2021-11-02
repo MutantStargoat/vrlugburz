@@ -5,6 +5,7 @@ src = $(wildcard src/*.c) \
 obj = $(src:.c=.o)
 alib = ../libimago.a
 
+sys ?= $(shell uname -s | sed 's/MINGW.*/mingw/')
 ifeq ($(sys), mingw)
 	obj = $(src:.c=.w32.o)
 	alib = ../w32/libimago.a
