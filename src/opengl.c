@@ -40,18 +40,31 @@ int init_opengl(void)
 		return -1;
 	}
 
+	if(glcaps.ver_major >= 2 || glcaps.ver_minor >= 3 || strstr(glext, "GL_ARB_multitexture")) {
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS, &glcaps.max_tex_units);
+
+#ifndef BUILD_GL13
+		LOADPROC(PFNGLACTIVETEXTUREPROC, glActiveTexture);
+#endif
+	} else {
+		glcaps.max_tex_units = 1;
+	}
+
 	if(glcaps.ver_major >= 2 || glcaps.ver_minor >= 5 || strstr(glext, "GL_ARB_vertex_buffer_object")) {
 		glcaps.caps |= GLCAPS_VBO;
 
+#ifndef BUILD_GL15
 		LOADPROC(PFNGLGENBUFFERSPROC, glGenBuffers);
 		LOADPROC(PFNGLDELETEBUFFERSPROC, glDeleteBuffers);
 		LOADPROC(PFNGLBINDBUFFERPROC, glBindBuffer);
 		LOADPROC(PFNGLBUFFERDATAPROC, glBufferData);
+#endif
 	}
 
 	if(glcaps.ver_major >= 2 || (strstr(glext, "GL_ARB_vertex_shader") && strstr(glext, "GL_ARB_fragment_shader"))) {
 		glcaps.caps |= GLCAPS_SDR;
 
+#ifndef BUILD_GL20
 		LOADPROC(PFNGLCREATEPROGRAMPROC, glCreateProgram);
 		LOADPROC(PFNGLDELETEPROGRAMPROC, glDeleteProgram);
 		LOADPROC(PFNGLATTACHSHADERPROC, glAttachShader);
@@ -78,6 +91,7 @@ int init_opengl(void)
 		LOADPROC(PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray);
 		LOADPROC(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glDisableVertexAttribArray);
 		LOADPROC(PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer);
+#endif
 	}
 
 	if(glcaps.ver_major >= 3 || strstr(glext, "GL_EXT_framebuffer_object") ||

@@ -5,7 +5,32 @@
 #include <windows.h>
 #endif
 
+/* stop gl.h from including glext before we check the GL_VERSION macros */
+#define GL_GLEXT_LEGACY
 #include <GL/gl.h>
+
+#ifdef GL_VERSION_1_1
+#define BUILD_GL11
+#endif
+#ifdef GL_VERSION_1_2
+#define BUILD_GL12
+#endif
+#ifdef GL_VERSION_1_3
+#define BUILD_GL13
+#endif
+#ifdef GL_VERSION_1_4
+#define BUILD_GL14
+#endif
+#ifdef GL_VERSION_1_5
+#define BUILD_GL15
+#endif
+#ifdef GL_VERSION_2_0
+#define BUILD_GL20
+#endif
+#ifdef GL_VERSION_2_1
+#define BUILD_GL21
+#endif
+
 #include <GL/glext.h>
 
 enum {
@@ -21,13 +46,21 @@ enum {
 struct glcaps {
 	int ver_major, ver_minor;
 	unsigned int caps;
+	int max_tex_units;
 } glcaps;
 
+#ifndef BUILD_GL13
+PFNGLACTIVETEXTUREPROC glActiveTexture;
+#endif
+
+#ifndef BUILD_GL15
 PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 PFNGLBINDBUFFERPROC glBindBuffer;
 PFNGLBUFFERDATAPROC glBufferData;
+#endif
 
+#ifndef BUILD_GL20
 PFNGLCREATEPROGRAMPROC glCreateProgram;
 PFNGLDELETEPROGRAMPROC glDeleteProgram;
 PFNGLATTACHSHADERPROC glAttachShader;
@@ -54,6 +87,7 @@ PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+#endif
 
 PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
 PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
