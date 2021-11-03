@@ -1,3 +1,7 @@
+# build options --------
+vrbuild = true
+# ----------------------
+
 src = $(wildcard src/*.c)
 obj = $(src:.c=.o)
 dep = $(src:.c=.d)
@@ -11,7 +15,7 @@ inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext -Ilibs/imago/src -Ilibs/goatvr
 
 CFLAGS = $(warn) $(opt) $(dbg) $(def) $(inc) -fcommon -MMD
 LDFLAGS = $(libdir) $(libsys) $(libgl) $(libal) $(libvr) -ldrawtext -limago -ltreestore \
-		  -lanim -lgoatvr -lgmath $(libc)
+		  -lanim $(libc)
 
 sys ?= $(shell uname -s | sed 's/MINGW.*/mingw/')
 ifeq ($(sys), mingw)
@@ -22,17 +26,30 @@ ifeq ($(sys), mingw)
 	libal = -lopenal
 	libsys = -lmingw32 -lgdi32 -lwinmm -mconsole
 	libc = -lm
-	libvr = -lovr -lopenvr_api
+
+	ifeq ($(vrbuild), true)
+		libvr = -lgoatvr -lgmath -lovr -lopenvr_api
+	endif
 else
 	libdir = -Llibs
 	libgl = -lGL -lX11 -lXext
 	libal = -lopenal
 	libc = -lm -ldl
-	libvr = -lopenvr_api
+
+	ifeq ($(vrbuild), true)
+		libvr = -lgoatvr -lgmath -lopenvr_api
+	endif
+endif
+
+ifeq ($(vrbuild), true)
+	def += -DBUILD_VR
+	LD = $(CXX)
+else
+	LD = $(CC)
 endif
 
 $(bin): $(obj)
-	$(CXX) -o $@ $(obj) $(LDFLAGS)
+	$(LD) -o $@ $(obj) $(LDFLAGS)
 
 -include $(dep)
 

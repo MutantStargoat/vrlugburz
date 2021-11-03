@@ -3,10 +3,13 @@
 #include "game.h"
 #include "opt.h"
 
+#ifdef BUILD_VR
 static int vr_initialized;
+#endif
 
 int init_vr(void)
 {
+#ifdef BUILD_VR
 	if(opt.flags & OPT_VR) {
 		if(goatvr_init() == -1) {
 			return -1;
@@ -31,19 +34,23 @@ int init_vr(void)
 
 		vr_initialized = 1;
 	}
+#endif	/* BUILD_VR */
 
 	return 0;
 }
 
 void shutdown_vr(void)
 {
+#ifdef BUILD_VR
 	if(vr_initialized) {
 		goatvr_shutdown();
 	}
+#endif	/* BUILD_VR */
 }
 
 void update_vr_input(void)
 {
+#ifdef BUILD_VR
 	/*
 	int num_vr_sticks;
 
@@ -81,4 +88,5 @@ void update_vr_input(void)
 		joy_bnstate |= 1 << GPAD_R;
 	}
 	*/
+#endif	/* BUILD_VR */
 }
