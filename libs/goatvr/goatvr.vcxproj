@@ -80,34 +80,34 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;USE_MOD_OCULUS;USE_MOD_OPENVR;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader />
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\libs\prebuilt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;USE_MOD_OCULUS;USE_MOD_OPENVR;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\libs\prebuilt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;USE_MOD_OCULUS;USE_MOD_OPENVR;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader />
-      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\libs\prebuilt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;USE_MOD_OCULUS;USE_MOD_OPENVR;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\libs\prebuilt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -127,7 +127,7 @@
     <ClCompile Include="src\wmutils.cc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\goatvr.h" />
+    <ClInclude Include="goatvr.h" />
     <ClInclude Include="src\goatvr_impl.h" />
     <ClInclude Include="src\autocfg.h" />
     <ClInclude Include="src\inpman.h" />

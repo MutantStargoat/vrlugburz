@@ -96,7 +96,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>anim.lib;drawtext.lib;imago.lib;treestore.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>anim.lib;drawtext.lib;imago.lib;treestore.lib;goatvr.lib;gmath.lib;opengl32.lib;winmm.lib;LibOVR.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\libs\prebuilt\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -110,7 +111,8 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>anim.lib;drawtext.lib;imago.lib;treestore.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>anim.lib;drawtext.lib;imago.lib;treestore.lib;goatvr.lib;gmath.lib;opengl32.lib;winmm.lib;LibOVR.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\libs\prebuilt\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,7 +126,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>anim.lib;drawtext.lib;imago.lib;treestore.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>anim.lib;drawtext.lib;imago.lib;treestore.lib;goatvr.lib;gmath.lib;opengl32.lib;winmm.lib;LibOVR.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\libs\prebuilt\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,44 +141,61 @@
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalDependencies>anim.lib;drawtext.lib;imago.lib;treestore.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>anim.lib;drawtext.lib;imago.lib;treestore.lib;goatvr.lib;gmath.lib;opengl32.lib;winmm.lib;LibOVR.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\libs\prebuilt\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\darray.c" />
     <ClCompile Include="src\fs.c" />
     <ClCompile Include="src\game.c" />
+    <ClCompile Include="src\geom.c" />
     <ClCompile Include="src\level.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\mesh.c" />
     <ClCompile Include="src\miniglut.c" />
+    <ClCompile Include="src\noise.c" />
     <ClCompile Include="src\opengl.c" />
+    <ClCompile Include="src\opt.c" />
+    <ClCompile Include="src\optcfg.c" />
     <ClCompile Include="src\player.c" />
+    <ClCompile Include="src\prop.c" />
     <ClCompile Include="src\rbtree.c" />
     <ClCompile Include="src\rend.c" />
     <ClCompile Include="src\rend_dbg.c" />
     <ClCompile Include="src\rend_lvl.c" />
+    <ClCompile Include="src\rtarg.c" />
     <ClCompile Include="src\scene.c" />
     <ClCompile Include="src\scenefile.c" />
     <ClCompile Include="src\sdr.c" />
     <ClCompile Include="src\texture.c" />
     <ClCompile Include="src\tileset.c" />
+    <ClCompile Include="src\util.c" />
+    <ClCompile Include="src\vr.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\darray.h" />
     <ClInclude Include="src\fs.h" />
     <ClInclude Include="src\game.h" />
     <ClInclude Include="src\geom.h" />
     <ClInclude Include="src\level.h" />
     <ClInclude Include="src\mesh.h" />
     <ClInclude Include="src\miniglut.h" />
+    <ClInclude Include="src\noise.h" />
     <ClInclude Include="src\opengl.h" />
+    <ClInclude Include="src\opt.h" />
+    <ClInclude Include="src\optcfg.h" />
     <ClInclude Include="src\player.h" />
+    <ClInclude Include="src\prop.h" />
     <ClInclude Include="src\rbtree.h" />
     <ClInclude Include="src\rend.h" />
+    <ClInclude Include="src\rtarg.h" />
     <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\sdr.h" />
     <ClInclude Include="src\texture.h" />
     <ClInclude Include="src\tileset.h" />
     <ClInclude Include="src\util.h" />
+    <ClInclude Include="src\vr.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

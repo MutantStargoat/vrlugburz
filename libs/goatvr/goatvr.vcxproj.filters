@@ -48,9 +48,6 @@
     <ClInclude Include="src\autocfg.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="include\goatvr.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\goatvr_impl.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -85,6 +82,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\wmutils.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="goatvr.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

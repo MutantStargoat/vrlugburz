@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "opengl.h"
 #include "game.h"
 #include "rend.h"

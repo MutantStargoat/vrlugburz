@@ -16,3 +16,5 @@ tools/dunger/src/level.c
 *debug/
 *release/
 .vs/
+libs/prebuilt/lib
+libs/prebuilt/lib64

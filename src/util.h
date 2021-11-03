@@ -12,6 +12,10 @@
 #endif
 #endif
 
+#ifdef _MSC_VER
+#define strcasecmp(s, k) stricmp(s, k)
+#endif
+
 #define GROW_ARRAY(arr, sz, onfail)	\
 	do { \
 		int newsz = (sz) ? (sz) * 2 : 16; \

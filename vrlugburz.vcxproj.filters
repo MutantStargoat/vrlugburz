@@ -58,6 +58,33 @@
     <ClCompile Include="src\tileset.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\darray.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geom.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\noise.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\opt.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\optcfg.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\prop.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rtarg.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vr.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\fs.h">
@@ -103,6 +130,27 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\util.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\darray.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\noise.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\opt.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\optcfg.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\prop.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtarg.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vr.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
