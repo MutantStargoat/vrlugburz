@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="matrix.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="misc.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="noise.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="quat.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="ray.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="vector.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="matrix.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.inl">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="misc.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="noise.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="quat.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="quat.inl">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="ray.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="swizzle.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="vector.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="vector2.inl">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="vector3.inl">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="vector4.inl">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{d5461540-bbe4-40c0-b358-4addd7361818}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

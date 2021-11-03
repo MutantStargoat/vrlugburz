@@ -14,7 +14,7 @@ else
 endif
 
 warn = -Wno-int-to-pointer-cast
-CXXFLAGS = $(warn) -O3 -ffast-math -I.. $(mod)
+CXXFLAGS = $(warn) -O3 -ffast-math -I. -I.. $(mod)
 
 $(alib): $(obj)
 	$(AR) rcs $@ $(obj)

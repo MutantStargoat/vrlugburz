@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\autocfg.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\goatvr.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\inpman.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod_anaglyph.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod_oculus.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod_openvr.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod_sbs.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mod_stereo.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\modman.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\module.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\opengl.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\reg_modules.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rtex.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\wmutils.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\autocfg.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="include\goatvr.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\goatvr_impl.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\inpman.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mod_anaglyph.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mod_oculus.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mod_openvr.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mod_sbs.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mod_stereo.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\modman.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\module.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\opengl.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rtex.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\wmutils.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{c5e8f8ed-36f6-48f6-b157-7d02cfac3411}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
