@@ -22,7 +22,8 @@ enum {
 	KEY_UP,
 	KEY_DOWN,
 	KEY_PGUP,
-	KEY_PGDOWN
+	KEY_PGDOWN,
+	KEY_HOME
 };
 
 long time_msec;

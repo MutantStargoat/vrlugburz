@@ -123,6 +123,8 @@ static int skey_translate(int key)
 		return KEY_PGUP;
 	case GLUT_KEY_PAGE_DOWN:
 		return KEY_PGDOWN;
+	case GLUT_KEY_HOME:
+		return KEY_HOME;
 	default:
 		return -1;
 	}

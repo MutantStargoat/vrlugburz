@@ -8,7 +8,9 @@
 #include "rend.h"
 #include "rtarg.h"
 #include "sdr.h"
+#include "vr.h"
 
+static void render_game(struct render_target *fbrt);
 static void draw_level(int rpass);
 
 struct level lvl;
@@ -69,6 +71,10 @@ int game_init(void)
 	player.cx = lvl.px;
 	player.cy = lvl.py;
 
+	if(init_vr() == -1) {
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -87,6 +93,8 @@ void update(float dt)
 {
 	int upd_dir_pending = 1;
 	int fwd = 0, right = 0, turn = 0;
+
+	update_vr_input();
 
 	if(time_msec - prev_turn >= TURN_INTERVAL) {
 		if(input_state[INP_LTURN]) turn--;
@@ -120,25 +128,73 @@ void update(float dt)
 
 void game_display(void)
 {
+	int i;
 	float dt;
 	static long prev_msec;
-	float sx, sy;
 
 	dt = (prev_msec - time_msec) / 1000.0f;
 	prev_msec = time_msec;
 
 	update(dt);
 
-	cgm_midentity(proj_matrix);
-	cgm_mperspective(proj_matrix, cgm_deg_to_rad(60), win_aspect, NEAR_CLIP, 500.0);
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(proj_matrix);
+#ifdef BUILD_VR
+	if(goatvr_invr()) {
+		unsigned int vrfbo;
+		struct render_target vr_rtarg;
 
-	cgm_midentity(view_matrix);
-	cgm_mpretranslate(view_matrix, 0, 0, -cam_dist);
-	cgm_mpremul(view_matrix, player.view_xform);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(view_matrix);
+		goatvr_draw_start();
+
+		vrfbo = goatvr_get_fbo();
+
+		for(i=0; i<2; i++) {
+			goatvr_draw_eye(i);
+			if(vrfbo) {
+				vr_rtarg.tex_width = vr_rtarg.width = goatvr_get_fb_eye_width(i);
+				vr_rtarg.tex_height = vr_rtarg.height = goatvr_get_fb_eye_height(i);
+				vr_rtarg.fbo = vrfbo;
+			}
+
+			cgm_mcopy(proj_matrix, goatvr_projection_matrix(i, NEAR_CLIP, 500.0f));
+			glMatrixMode(GL_PROJECTION);
+			glLoadMatrixf(proj_matrix);
+
+			cgm_mcopy(view_matrix, goatvr_view_matrix(i));
+			cgm_mpremul(view_matrix, player.view_xform);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixf(view_matrix);
+
+			render_game(vrfbo ? &vr_rtarg : 0);
+		}
+
+		goatvr_draw_done();
+
+		if(should_swap) {
+			game_swap_buffers();
+		}
+	} else
+#endif	/* BUILD_VR */
+	{
+		/* non-VR mode */
+		cgm_midentity(proj_matrix);
+		cgm_mperspective(proj_matrix, cgm_deg_to_rad(60), win_aspect, NEAR_CLIP, 500.0);
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixf(proj_matrix);
+
+		cgm_midentity(view_matrix);
+		cgm_mpretranslate(view_matrix, 0, 0, -cam_dist);
+		cgm_mpremul(view_matrix, player.view_xform);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadMatrixf(view_matrix);
+
+		render_game(0);
+
+		game_swap_buffers();
+	}
+}
+
+static void render_game(struct render_target *fbrt)
+{
+	float sx, sy;
 
 	/* geometry pass */
 	rend_begin(rend, RPASS_GEOM);
@@ -154,7 +210,7 @@ void game_display(void)
 	rend_end(rend, RPASS_LIGHT);
 
 	/* post processing */
-	bind_rtarg(0);
+	bind_rtarg(fbrt);
 
 	glDisable(GL_DEPTH_TEST);
 
@@ -182,7 +238,6 @@ void game_display(void)
 
 	glEnable(GL_DEPTH_TEST);
 
-	game_swap_buffers();
 	assert(glGetError() == GL_NO_ERROR);
 }
 
@@ -249,6 +304,9 @@ void game_reshape(int x, int y)
 {
 	rend_reshape(x, y);
 	resize_rtarg(&rtarg, x, y);
+#ifdef BUILD_VR
+	goatvr_set_fb_size(x, y, 1.0f);
+#endif
 
 	glViewport(0, 0, x, y);
 	win_width = x;
@@ -312,6 +370,14 @@ void game_keyboard(int key, int press)
 			prev_turn = time_msec;
 		}
 		break;
+
+#ifdef BUILD_VR
+	case KEY_HOME:
+		if(goatvr_invr()) {
+			goatvr_recenter();
+		}
+		break;
+#endif
 	}
 }
 
