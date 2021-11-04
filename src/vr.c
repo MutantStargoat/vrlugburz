@@ -14,7 +14,7 @@ int init_vr(void)
 		if(goatvr_init() == -1) {
 			return -1;
 		}
-		/*goatvr_set_origin_mode(GOATVR_HEAD);*/
+		goatvr_set_origin_mode(GOATVR_HEAD);
 
 		goatvr_startvr();
 		should_swap = goatvr_should_swap();
