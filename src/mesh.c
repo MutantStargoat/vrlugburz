@@ -311,6 +311,8 @@ int update_mesh_vbo(struct mesh *m)
 				m->iarr, GL_STATIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
+
+	m->vbovalid = 1;
 	return 0;
 }
 
@@ -373,6 +375,7 @@ int update_meshgroup_vbo(struct meshgroup *mg)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
+	mg->vbovalid = 1;
 	free(varr);
 	free(iarr);
 	return 0;
