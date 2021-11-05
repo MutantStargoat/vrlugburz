@@ -358,6 +358,7 @@ static int print_attr(struct ts_attr *attr, struct ts_io *io, int level)
 	if(!(buf = malloc(sz))) {
 		perror("print_attr: failed to allocate name buffer");
 		ts_dynarr_free(val);
+		return -1;
 	}
 
 	if(level >= 0) {
