@@ -57,11 +57,6 @@ int game_init(void)
 		return -1;
 	}
 
-	if(init_rtarg(&rtarg, win_width, win_height, 1) == -1) {
-		fprintf(stderr, "failed to create %dx%d framebuffer\n", win_width, win_height);
-		return -1;
-	}
-
 	if(load_level(&lvl, "data/test.lvl") == -1) {
 		return -1;
 	}
@@ -72,6 +67,21 @@ int game_init(void)
 	player.cy = lvl.py;
 
 	if(init_vr() == -1) {
+		return -1;
+	}
+
+	if(vr_active()) {
+		vp_width = goatvr_get_fb_eye_width(0);
+		vp_height = goatvr_get_fb_eye_height(0);
+		rend_reshape(vp_width, vp_height);
+		printf("render target size: %dx%d\n", vp_width, vp_height);
+	} else {
+		vp_width = win_width;
+		vp_height = win_height;
+	}
+
+	if(init_rtarg(&rtarg, vp_width, vp_height, 1) == -1) {
+		fprintf(stderr, "failed to create %dx%d framebuffer\n", vp_width, vp_height);
 		return -1;
 	}
 
@@ -140,7 +150,7 @@ void game_display(void)
 #ifdef BUILD_VR
 	if(goatvr_invr()) {
 		unsigned int vrfbo;
-		struct render_target vr_rtarg;
+		struct render_target vr_rtarg = {0};
 
 		goatvr_draw_start();
 
@@ -149,9 +159,12 @@ void game_display(void)
 		for(i=0; i<2; i++) {
 			goatvr_draw_eye(i);
 			if(vrfbo) {
+				vr_rtarg.xoffs = goatvr_get_fb_eye_xoffset(i);
+				vr_rtarg.yoffs = goatvr_get_fb_eye_yoffset(i);
 				vr_rtarg.tex_width = vr_rtarg.width = goatvr_get_fb_eye_width(i);
 				vr_rtarg.tex_height = vr_rtarg.height = goatvr_get_fb_eye_height(i);
 				vr_rtarg.fbo = vrfbo;
+				vr_rtarg.num_tex = 1;
 			}
 
 			cgm_mcopy(proj_matrix, goatvr_projection_matrix(i, NEAR_CLIP, 500.0f));
@@ -167,6 +180,8 @@ void game_display(void)
 		}
 
 		goatvr_draw_done();
+		
+		assert(glGetError() == GL_NO_ERROR);
 
 		if(should_swap) {
 			game_swap_buffers();
@@ -188,6 +203,7 @@ void game_display(void)
 
 		render_game(0);
 
+		assert(glGetError() == GL_NO_ERROR);
 		game_swap_buffers();
 	}
 }
@@ -237,8 +253,6 @@ static void render_game(struct render_target *fbrt)
 	glUseProgram(0);
 
 	glEnable(GL_DEPTH_TEST);
-
-	assert(glGetError() == GL_NO_ERROR);
 }
 
 static void draw_level(int rpass)
@@ -302,16 +316,21 @@ static void draw_level(int rpass)
 
 void game_reshape(int x, int y)
 {
-	rend_reshape(x, y);
-	resize_rtarg(&rtarg, x, y);
-#ifdef BUILD_VR
-	goatvr_set_fb_size(x, y, 1.0f);
-#endif
-
 	glViewport(0, 0, x, y);
 	win_width = x;
 	win_height = y;
 	win_aspect = (float)x / (float)y;
+
+	if(!vr_active()) {
+		rend_reshape(x, y);
+		resize_rtarg(&rtarg, x, y);
+		vp_width = x;
+		vp_height = y;
+		vp_aspect = win_aspect;
+	}
+#ifdef BUILD_VR
+	goatvr_set_fb_size(x, y, 1.0f);
+#endif
 }
 
 void game_keyboard(int key, int press)

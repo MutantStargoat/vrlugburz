@@ -10,6 +10,7 @@ int init_rtarg(struct render_target *rt, int xsz, int ysz, int mrtcount)
 {
 	int i;
 
+	rt->xoffs = rt->yoffs = 0;
 	rt->width = xsz;
 	rt->height = ysz;
 	rt->tex_width = nextpow2(xsz);
@@ -116,8 +117,10 @@ void bind_rtarg(struct render_target *rt)
 
 	if(rt) {
 		glBindFramebuffer(GL_FRAMEBUFFER, rt->fbo);
-		glViewport(0, 0, rt->width, rt->height);
-		glDrawBuffers(rt->num_tex, rbuf);
+		glViewport(rt->xoffs, rt->yoffs, rt->width, rt->height);
+		if(rt->num_tex) {
+			glDrawBuffers(rt->num_tex, rbuf);
+		}
 	} else {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, win_width, win_height);

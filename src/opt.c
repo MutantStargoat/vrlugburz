@@ -57,12 +57,21 @@ static int is_enabled(struct optcfg *oc)
 {
 	int res;
 	optcfg_enabled_value(oc, &res);
+	printf("%s\n", res ? "enabled" : "disabled");
 	return res != 0;
 }
 
 static int opt_handler(struct optcfg *oc, int optid, void *cls)
 {
 	char *valstr;
+
+	if(optid != OPTCFG_HELP) {
+		if(optlist[optid].s) {
+			printf("option %s: ", optlist[optid].s);
+		} else {
+			printf("option %c: ", optlist[optid].c);
+		}
+	}
 
 	switch(optid) {
 	case OPTCFG_SIZE:
@@ -71,6 +80,7 @@ static int opt_handler(struct optcfg *oc, int optid, void *cls)
 			fprintf(stderr, "size must be of the form: WIDTHxHEIGHT\n");
 			return -1;
 		}
+		printf("%dx%d\n", opt.width, opt.height);
 		break;
 
 	case OPTCFG_VR:

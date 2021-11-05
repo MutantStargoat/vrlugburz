@@ -5,6 +5,7 @@
 struct render_target {
 	int width, height;
 	int tex_width, tex_height;
+	int xoffs, yoffs;
 	int num_tex;
 	unsigned int fbo;
 	unsigned int tex[RTARG_MAX_COLBUF], zbuf;

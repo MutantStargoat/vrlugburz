@@ -135,14 +135,15 @@ static void begin(int pass)
 	case RPASS_LIGHT:
 		/* TODO non-blit fallback */
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, rtarg.fbo);
-		glBlitFramebuffer(0, 0, win_width, win_height, 0, 0, win_width, win_height,
-				GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(rtarg.xoffs, rtarg.yoffs, rtarg.width, rtarg.height,
+			vp_xoffs, vp_yoffs, vp_width, vp_height,
+			GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 		glUseProgram(sdr_light);
 		if(uloc_texscale != -1) {
-			float sx = (float)rtarg.width / ((float)win_width * (float)rtarg.tex_width);
-			float sy = (float)rtarg.height / ((float)win_height * (float)rtarg.tex_height);
+			float sx = (float)rtarg.width / ((float)vp_width * (float)rtarg.tex_width);
+			float sy = (float)rtarg.height / ((float)vp_height * (float)rtarg.tex_height);
 			glUniform2f(uloc_texscale, sx, sy);
 		}
 
