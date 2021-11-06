@@ -11,6 +11,7 @@ enum {
 struct options {
 	int width, height;
 	unsigned int flags;
+	const char *start_scr;
 } opt;
 
 int init_options(int argc, char **argv, const char *cfgfile);

@@ -33,6 +33,7 @@ int init_options(int argc, char **argv, const char *cfgfile)
 	opt.width = 1280;
 	opt.height = 800;
 	opt.flags = OPT_VSYNC;
+	opt.start_scr = "game";
 
 	argv0 = argv[0];
 
