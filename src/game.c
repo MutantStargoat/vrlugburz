@@ -4,6 +4,7 @@
 #include "opengl.h"
 #include "rend.h"
 #include "screen.h"
+#include "debug.h"
 #include "vr.h"
 #include "opt.h"
 
@@ -17,6 +18,8 @@ int game_init(void)
 	if(init_opengl() == -1) {
 		return -1;
 	}
+
+	dbg_init();
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);

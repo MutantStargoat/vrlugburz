@@ -7,7 +7,7 @@ else
 	lib = ../libdrawtext.a
 endif
 
-CFLAGS = -pedantic -Wall -O3 -DNO_FREETYPE -fcommon
+CFLAGS = -pedantic -Wall -O3 -DNO_FREETYPE -DNO_GLU -fcommon
 
 $(lib): $(obj)
 	$(AR) rcs $@ $(obj)

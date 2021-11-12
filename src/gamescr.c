@@ -10,6 +10,7 @@
 #include "rtarg.h"
 #include "sdr.h"
 #include "vr.h"
+#include "debug.h"
 
 #define REND	REND_LEVEL
 
@@ -228,6 +229,8 @@ static void render_game(struct render_target *fbrt)
 {
 	float sx, sy;
 
+	dbg_begin();
+
 	/* geometry pass */
 	rend_begin(REND, RPASS_GEOM);
 	draw_level(RPASS_GEOM);
@@ -267,6 +270,7 @@ static void render_game(struct render_target *fbrt)
 	glEnd();
 
 	glUseProgram(0);
+	dbg_end();
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -286,6 +290,9 @@ static void draw_level(int rpass)
 
 	pcell = lvl.cells + player.cy * lvl.width + player.cx;
 	num_vis = darr_size(pcell->vis);
+	if(rpass == RPASS_GEOM) {
+		dbg_printf("vis cells: %d\n", num_vis);
+	}
 	for(i=0; i<num_vis; i++) {
 		cell = pcell->vis[i];
 

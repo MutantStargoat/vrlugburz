@@ -16,3 +16,5 @@ cp datasrc/tex/sfloor1b_spec.jpg data/tex
 cp datasrc/tex/stonetex.jpg data/tex
 cp datasrc/tex/barrel.jpg data/tex
 cp datasrc/tex/torch.jpg data/tex
+
+cp datasrc/dbgfont.glyphmap data
