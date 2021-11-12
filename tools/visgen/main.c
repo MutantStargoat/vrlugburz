@@ -29,8 +29,9 @@ int main(int argc, char **argv)
 	int i, x, y;
 	const char *inpath = 0, *outpath = 0;
 	struct ts_node *ts, *node;
+	struct ts_attr *attr, *aprev, dummy_attr;
 	struct level lvl = {0};
-	struct cell *cell;
+	struct cell *cell, *vis;
 
 	for(i=1; i<argc; i++) {
 		if(argv[i][0] == '-' && argv[i][2] == 0) {
@@ -104,7 +105,72 @@ int main(int argc, char **argv)
 
 	calc_visibility(&lvl);
 
-	dump_cells(&lvl, "cells.ppm");
+	node = ts->child_list;
+	while(node) {
+		if(strcmp(node->name, "cell") != 0) {
+			node = node->next;
+			continue;
+		}
+
+		/* remove all existing vis attributes */
+		dummy_attr.next = node->attr_list;
+		aprev = &dummy_attr;
+		while(aprev->next) {
+			attr = aprev->next;
+			if(strcmp(attr->name, "vis") == 0) {
+				aprev->next = attr->next;
+				if(!aprev->next) {
+					node->attr_tail = aprev;
+				}
+				ts_free_attr(attr);
+			} else {
+				aprev = aprev->next;
+			}
+		}
+		node->attr_list = dummy_attr.next;
+		if(node->attr_tail == &dummy_attr) {
+			node->attr_tail = 0;
+		}
+
+		x = ts_get_attr_int(node, "x", -1);
+		y = ts_get_attr_int(node, "y", -1);
+		if(x < 0 || y < 0 || x >= lvl.width || y >= lvl.height) {
+			node = node->next;
+			continue;
+		}
+
+		/* add visibility information */
+		cell = lvl.clist;
+		while(cell) {
+			if(cell->x == x && cell->y == y) {
+				vis = cell->vislist;
+				while(vis) {
+					if(!(attr = ts_alloc_attr()) || ts_set_attr_name(attr, "vis") == -1) {
+						fprintf(stderr, "failed to allocate visibility attribute\n");
+						abort();
+					}
+					ts_set_valuefv(&attr->val, 2, (float)vis->x, (float)vis->y);
+					ts_add_attr(node, attr);
+
+					vis = vis->next;
+				}
+				break;
+			}
+			cell = cell->next;
+		}
+
+		node = node->next;
+	}
+
+	if(outpath) {
+		if(ts_save(ts, outpath) == -1) {
+			fprintf(stderr, "failed to save file: %s\n", outpath);
+			ts_free_tree(ts);
+			return 1;
+		}
+	} else {
+		ts_save_file(ts, stdout);
+	}
 
 	ts_free_tree(ts);
 	return 0;
@@ -118,7 +184,6 @@ void calc_visibility(struct level *lvl)
 		to = lvl->clist;
 		while(to) {
 			if(calc_cell_visibility(lvl, from, to->x, to->y)) {
-				printf("found path from %d,%d to %d,%d\n", from->x, from->y, to->x, to->y);
 				add_vis_cell(from, to->x, to->y);
 			}
 			to = to->next;

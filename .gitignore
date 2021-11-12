@@ -18,3 +18,5 @@ tools/dunger/src/level.c
 .vs/
 libs/prebuilt/lib
 libs/prebuilt/lib64
+tools/visgen/visgen
+*.ppm

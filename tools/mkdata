@@ -3,7 +3,7 @@
 mkdir -p data/tex
 
 cp datasrc/test.tileset data
-cp datasrc/test.lvl data
+tools/visgen/visgen datasrc/test.lvl -o data/test.lvl
 cp datasrc/test.props data
 
 cp datasrc/walls.obj data
