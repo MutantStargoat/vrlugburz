@@ -6,7 +6,6 @@
 
 struct player {
 	struct level *lvl;
-	struct cell *vis;	/* cell visibility list */
 
 	int cx, cy;
 	cgm_vec3 cpos;		/* cell position (derived from cx,cy) */
@@ -30,7 +29,5 @@ void move_player(struct player *p, int right, int fwd);
 void turn_player(struct player *p, int turn);
 
 void upd_player_xform(struct player *p);
-
-void upd_player_vis(struct player *p);
 
 #endif	/* PLAYER_H_ */

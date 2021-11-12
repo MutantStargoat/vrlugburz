@@ -39,6 +39,7 @@ int init_level(struct level *lvl, int xsz, int ysz)
 			init_scene(&cell->scn);
 			cell->x = j;
 			cell->y = i;
+			cell->vis = darr_alloc(0, sizeof *cell->vis);
 			cell++;
 		}
 	}
@@ -59,6 +60,7 @@ void destroy_level(struct level *lvl)
 	for(i=0; i<lvl->height; i++) {
 		for(j=0; j<lvl->width; j++) {
 			destroy_scene(&cell->scn);
+			darr_free(cell->vis);
 			while(cell->props) {
 				prop = cell->props;
 				cell->props = prop->next;
@@ -254,11 +256,30 @@ err:
 
 #ifndef LEVEL_EDITOR
 
+static int curcell_x, curcell_y;
+static int cmp_vis_cells(const void *a, const void *b)
+{
+	int dx, dy, da, db;
+	const struct cell *va = a;
+	const struct cell *vb = b;
+
+	dx = va->x - curcell_x;
+	dy = va->y - curcell_y;
+	da = dx * dx + dy * dy;
+
+	dx = vb->x - curcell_x;
+	dy = vb->y - curcell_y;
+	db = dx * dx + dy * dy;
+
+	return db - da;
+}
+
 static struct cell *handle_cell_node(struct level *lvl, struct ts_node *node)
 {
-	int cx, cy;
-	struct cell *cell;
+	int cx, cy, vis_self = 0;
+	struct cell *cell, *vis;
 	struct ts_node *cnode;
+	struct ts_attr *attr;
 	struct prop *prop;
 	const char *str;
 
@@ -285,6 +306,38 @@ static struct cell *handle_cell_node(struct level *lvl, struct ts_node *node)
 		}
 		cnode = cnode->next;
 	}
+
+	/* read pre-computed visibility information and populate vis array with pointers
+	 * to visible cells from this cell
+	 */
+	attr = node->attr_list;
+	while(attr) {
+		if(strcmp(attr->name, "vis") != 0) {
+			goto cont;
+		}
+		if(attr->val.type != TS_VECTOR || attr->val.vec_size != 2 ||
+				(cx = attr->val.vec[0]) < 0 || cx >= lvl->width ||
+				(cy = attr->val.vec[1]) < 0 || cy >= lvl->height) {
+			fprintf(stderr, "ignoring invalid visibility info attached to cell %d,%d\n", cell->x, cell->y);
+			goto cont;
+		}
+		if(cx == cell->x && cy == cell->y) vis_self = 1;
+		vis = lvl->cells + cy * lvl->width + cx;
+		darr_push(cell->vis, &vis);
+
+cont:	attr = attr->next;
+	}
+
+	/* sort visibility list back to front */
+	curcell_x = cell->x;
+	curcell_y = cell->y;
+	qsort(cell->vis, darr_size(cell->vis), sizeof *cell->vis, cmp_vis_cells);
+
+	if(!vis_self) {
+		/* if the visibility list did not include the cell itself, append it */
+		darr_push(cell->vis, &cell);
+	}
+
 	return cell;
 }
 

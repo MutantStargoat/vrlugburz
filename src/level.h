@@ -45,7 +45,8 @@ struct cell {
 	struct scene scn;
 
 	/* visibility information */
-	int dist, visible;
+	/*int dist, visible;*/
+	struct cell **vis;
 
 	struct cell *next;
 };

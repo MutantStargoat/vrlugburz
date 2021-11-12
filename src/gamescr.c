@@ -75,6 +75,7 @@ static int init(void)
 	}
 	uloc_expose = get_uniform_loc(sdr_post, "exposure");
 	clear_shader_header(GL_FRAGMENT_SHADER);
+	return 0;
 }
 
 static void cleanup(void)
@@ -109,6 +110,7 @@ static int start(void)
 		fprintf(stderr, "failed to create %dx%d framebuffer\n", vp_width, vp_height);
 		return -1;
 	}
+	return 0;
 }
 
 static void stop(void)
@@ -272,7 +274,8 @@ static void render_game(struct render_target *fbrt)
 
 static void draw_level(int rpass)
 {
-	struct cell *cell;
+	int i, num_vis;
+	struct cell *cell, *pcell;
 	static int last_rpass = INT_MAX;
 	float xform[16];
 	struct prop *prop;
@@ -281,16 +284,11 @@ static void draw_level(int rpass)
 		return;
 	}
 
-	if(!player.vis) {
-		upd_player_vis(&player);
-	}
+	pcell = lvl.cells + player.cy * lvl.width + player.cx;
+	num_vis = darr_size(pcell->vis);
+	for(i=0; i<num_vis; i++) {
+		cell = pcell->vis[i];
 
-	cell = player.vis;
-	while(cell) {
-		if(rpass != RPASS_LIGHT && !cell->visible) {
-			cell = cell->next;
-			continue;
-		}
 		cgm_mtranslation(world_matrix, cell->x * lvl.cell_size, 0, -cell->y * lvl.cell_size);
 
 		glPushMatrix();
@@ -322,8 +320,6 @@ static void draw_level(int rpass)
 		}
 		rend_pass(REND, rpass, &cell->scn);
 		glPopMatrix();
-
-		cell = cell->next;
 	}
 
 	last_rpass = rpass;
