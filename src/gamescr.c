@@ -278,7 +278,7 @@ static void render_game(struct render_target *fbrt)
 
 static void draw_level(int rpass)
 {
-	int i, num_vis;
+	int i, num_vis, count = 0;
 	struct cell *cell, *pcell;
 	static int last_rpass = INT_MAX;
 	float xform[16];
@@ -290,11 +290,14 @@ static void draw_level(int rpass)
 
 	pcell = lvl.cells + player.cy * lvl.width + player.cx;
 	num_vis = darr_size(pcell->vis);
-	if(rpass == RPASS_GEOM) {
-		dbg_printf("vis cells: %d\n", num_vis);
-	}
 	for(i=0; i<num_vis; i++) {
 		cell = pcell->vis[i];
+
+		/* during the geometry pass, skip cells behind the player */
+		if(rpass == RPASS_GEOM && !cell_infront(&player, cell->x, cell->y)) {
+			continue;
+		}
+		count++;
 
 		cgm_mtranslation(world_matrix, cell->x * lvl.cell_size, 0, -cell->y * lvl.cell_size);
 
@@ -330,6 +333,8 @@ static void draw_level(int rpass)
 	}
 
 	last_rpass = rpass;
+
+	dbg_printf("vis (pass: %s): %d\n", rpass_name[rpass], count);
 }
 
 

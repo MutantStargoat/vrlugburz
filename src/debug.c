@@ -42,23 +42,25 @@ void dbg_end(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
 	glOrtho(0, 1024 * vp_aspect, 0, 1024, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glTranslatef(0, 1024 - line_height, 0);
 
 	glColor3f(1, 1, 1);
 	dtx_use_font(font, FONT_SIZE);
 	dtx_draw_buffering(DTX_FBF);
 	for(i=0; i<curline; i++) {
 		dtx_string(lines[i]);
-		glTranslatef(0, line_height, 0);
+		dtx_flush();
+		glTranslatef(0, -line_height, 0);
 	}
-	dtx_flush();
 
+	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();

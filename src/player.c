@@ -64,3 +64,17 @@ void upd_player_xform(struct player *p)
 	cgm_mrotate_quat(p->view_xform, &p->vrot);
 	cgm_mpretranslate(p->view_xform, -pos.x, -pos.y, -pos.z);
 }
+
+int cell_infront(struct player *p, int x, int y)
+{
+	int dx, dy;
+
+	if(p->cx == x && p->cy == y) return 1;
+
+	dx = x - p->cx;
+	dy = y - p->cy;
+	if(step[p->dir][0] * dx + step[p->dir][1] * dy <= 0) {
+		return 0;
+	}
+	return 1;
+}

@@ -31,6 +31,7 @@ struct renderer {
 };
 
 struct renderer *renderer[NUM_REND];
+extern const char *rpass_name[NUM_RPASSES];
 
 int rend_init(void);
 void rend_destroy(void);

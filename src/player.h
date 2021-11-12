@@ -30,4 +30,6 @@ void turn_player(struct player *p, int turn);
 
 void upd_player_xform(struct player *p);
 
+int cell_infront(struct player *p, int x, int y);
+
 #endif	/* PLAYER_H_ */

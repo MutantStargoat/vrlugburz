@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include "rend.h"
 
+const char *rpass_name[NUM_RPASSES] = {
+	"shadow",
+	"geometry",
+	"light",
+	"blend"
+};
+
 struct renderer *init_rend_debug(void);
 struct renderer *init_rend_level(void);
 
