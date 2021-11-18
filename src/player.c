@@ -69,11 +69,9 @@ int cell_infront(struct player *p, int x, int y)
 {
 	int dx, dy;
 
-	if(p->cx == x && p->cy == y) return 1;
-
 	dx = x - p->cx;
 	dy = y - p->cy;
-	if(step[p->dir][0] * dx + step[p->dir][1] * dy <= 0) {
+	if(step[p->dir][0] * dx + step[p->dir][1] * dy < 0) {
 		return 0;
 	}
 	return 1;
