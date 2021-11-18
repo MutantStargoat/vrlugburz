@@ -1,5 +1,5 @@
 .PHONY: all
-all: treestore imago drawtext anim gmath goatvr
+all: treestore imago drawtext anim psys gmath goatvr
 
 .PHONY: clean
 clean: clean-treestore clean-imago clean-drawtext clean-anim clean-gmath clean-goatvr
@@ -35,6 +35,14 @@ anim:
 .PHONY: clean-anim
 clean-anim:
 	$(MAKE) -C anim clean
+
+.PHONY: psys
+psys:
+	$(MAKE) -C psys
+
+.PHONY: clean-psys
+clean-psys:
+	$(MAKE) -C psys clean
 
 .PHONY: gmath
 gmath:

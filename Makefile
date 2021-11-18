@@ -15,7 +15,7 @@ inc = -Ilibs -Ilibs/treestore -Ilibs/drawtext -Ilibs/imago/src -Ilibs/goatvr
 
 CFLAGS = $(warn) $(opt) $(dbg) $(def) $(inc) -fcommon -MMD
 LDFLAGS = $(libdir) $(libsys) $(libgl) $(libal) $(libvr) -ldrawtext -limago -ltreestore \
-		  -lanim $(libc)
+		  -lanim -lpsys $(libc)
 
 sys ?= $(shell uname -s | sed 's/MINGW.*/mingw/')
 ifeq ($(sys), mingw)

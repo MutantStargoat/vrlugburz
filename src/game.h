@@ -1,7 +1,7 @@
 #ifndef GAME_H_
 #define GAME_H_
 
-#define NEAR_CLIP	0.5f
+#define NEAR_CLIP	0.1f
 
 enum { DIR_N, DIR_E, DIR_S, DIR_W };
 
