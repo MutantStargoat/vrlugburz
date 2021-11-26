@@ -101,6 +101,7 @@ int init_scene(struct scene *scn)
 	scn->root = malloc_nf(sizeof *scn->root);
 	scn->meshes = darr_alloc(0, sizeof *scn->meshes);
 	scn->lights = darr_alloc(0, sizeof *scn->lights);
+	scn->psys = darr_alloc(0, sizeof *scn->psys);
 
 	init_snode(scn->root);
 	return 0;
@@ -123,6 +124,11 @@ void destroy_scene(struct scene *scn)
 	}
 	darr_free(scn->lights);
 
+	for(i=0; i<darr_size(scn->psys); i++) {
+		free(scn->psys[i]);
+	}
+	darr_free(scn->psys);
+
 	free_snode_tree(scn->root);
 }
 
@@ -131,6 +137,7 @@ void copy_scene(struct scene *dst, struct scene *src)
 	int i;
 	struct mesh *mesh;
 	struct light *lt;
+	struct psys_emitter *ps;
 	struct rbtree *objmap;
 
 	objmap = rb_create(RB_KEY_ADDR);
@@ -162,6 +169,14 @@ void copy_scene(struct scene *dst, struct scene *src)
 		}
 	}
 
+	for(i=0; i<darr_size(src->psys); i++) {
+		if(src->psys[i]) {
+			ps = psys_create();
+			psys_copy_attr(&ps->attr, &src->psys[i]->attr);
+			add_scene_psys(dst, ps);
+		}
+	}
+
 	dst->root = copy_snode_tree(src->root, objmap);
 	rb_free(objmap);
 }
@@ -174,6 +189,11 @@ void add_scene_mesh(struct scene *scn, struct mesh *m)
 void add_scene_light(struct scene *scn, struct light *lt)
 {
 	darr_push(scn->lights, &lt);
+}
+
+void add_scene_psys(struct scene *scn, struct psys_emitter *ps)
+{
+	darr_push(scn->psys, &ps);
 }
 
 void add_scene_node(struct scene *scn, struct snode *sn)

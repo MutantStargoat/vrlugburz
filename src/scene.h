@@ -3,6 +3,7 @@
 
 #include "anim/anim.h"
 #include "cgmath/cgmath.h"
+#include "psys/psys.h"
 #include "mesh.h"
 #include "darray.h"
 
@@ -43,6 +44,7 @@ struct scene {
 	/* dynamic arrays */
 	struct mesh **meshes;
 	struct light **lights;
+	struct psys_emitter **psys;
 
 	struct snode *root;
 };
@@ -70,6 +72,7 @@ void copy_scene(struct scene *dst, struct scene *src);
 
 void add_scene_mesh(struct scene *scn, struct mesh *m);
 void add_scene_light(struct scene *scn, struct light *lt);
+void add_scene_psys(struct scene *scn, struct psys_emitter *ps);
 /* just adds the node as a child of root */
 void add_scene_node(struct scene *scn, struct snode *sn);
 
