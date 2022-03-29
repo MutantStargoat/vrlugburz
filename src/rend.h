@@ -6,6 +6,7 @@ struct scene;
 enum {
 	REND_DBG,
 	REND_LEVEL,
+	REND_PRE,
 
 	NUM_REND
 };

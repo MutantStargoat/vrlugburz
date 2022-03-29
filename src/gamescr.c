@@ -12,7 +12,8 @@
 #include "vr.h"
 #include "debug.h"
 
-#define REND	REND_LEVEL
+/*#define REND	REND_LEVEL*/
+#define REND	REND_PRE
 
 static int init(void);
 static void cleanup(void);
@@ -163,7 +164,7 @@ static void draw(void)
 {
 	int i;
 
-	#ifdef BUILD_VR
+#ifdef BUILD_VR
 	if(goatvr_invr()) {
 		unsigned int vrfbo;
 		struct render_target vr_rtarg = {0};
@@ -232,17 +233,25 @@ static void render_game(struct render_target *fbrt)
 	dbg_begin();
 
 	/* geometry pass */
-	rend_begin(REND, RPASS_GEOM);
-	draw_level(RPASS_GEOM);
-	rend_end(REND, RPASS_GEOM);
+	if(renderer[REND]->rendpass[RPASS_GEOM]) {
+		if(!renderer[REND]->rendpass[RPASS_LIGHT]) {
+			bind_rtarg(&rtarg);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+		rend_begin(REND, RPASS_GEOM);
+		draw_level(RPASS_GEOM);
+		rend_end(REND, RPASS_GEOM);
+	}
 
 	/* light pass */
-	bind_rtarg(&rtarg);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if(renderer[REND]->rendpass[RPASS_LIGHT]) {
+		bind_rtarg(&rtarg);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	rend_begin(REND, RPASS_LIGHT);
-	draw_level(RPASS_LIGHT);
-	rend_end(REND, RPASS_LIGHT);
+		rend_begin(REND, RPASS_LIGHT);
+		draw_level(RPASS_LIGHT);
+		rend_end(REND, RPASS_LIGHT);
+	}
 
 	/* post processing */
 	bind_rtarg(fbrt);

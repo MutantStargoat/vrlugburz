@@ -10,6 +10,7 @@ const char *rpass_name[NUM_RPASSES] = {
 
 struct renderer *init_rend_debug(void);
 struct renderer *init_rend_level(void);
+struct renderer *init_rend_pre(void);
 
 int rend_init(void)
 {
@@ -19,6 +20,10 @@ int rend_init(void)
 	}
 	if(!(renderer[REND_LEVEL] = init_rend_level())) {
 		fprintf(stderr, "failed to create level renderer\n");
+		return -1;
+	}
+	if(!(renderer[REND_PRE] = init_rend_pre())) {
+		fprintf(stderr, "failed to create pre-render renderer\n");
 		return -1;
 	}
 
