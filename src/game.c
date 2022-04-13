@@ -9,6 +9,7 @@
 #include "opt.h"
 
 void reg_game_screen(void);
+void reg_pre_screen(void);
 
 int win_width, win_height;
 float win_aspect;
@@ -32,6 +33,7 @@ int game_init(void)
 	}
 
 	reg_game_screen();
+	reg_pre_screen();
 
 	if(init_all_screens() == -1) {
 		return -1;
