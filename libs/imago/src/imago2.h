@@ -37,6 +37,7 @@ enum img_fmt {
 	IMG_FMT_RGBAF,
 	IMG_FMT_BGRA32,
 	IMG_FMT_RGB565,
+	IMG_FMT_IDX8,
 
 	NUM_IMG_FMT
 };
@@ -47,6 +48,13 @@ struct img_pixmap {
 	enum img_fmt fmt;
 	int pixelsz;
 	char *name;
+};
+
+struct img_colormap {
+	int ncolors;
+	struct {
+		unsigned char r, g, b;
+	} color[256];
 };
 
 struct img_io {
@@ -133,6 +141,10 @@ int img_write(struct img_pixmap *img, struct img_io *io);
 /* Converts an image to the specified pixel format */
 int img_convert(struct img_pixmap *img, enum img_fmt tofmt);
 
+/* Flip the image vertically or horizontally */
+void img_vflip(struct img_pixmap *img);
+void img_hflip(struct img_pixmap *img);
+
 /* Converts an image from an integer pixel format to the corresponding floating point one */
 int img_to_float(struct img_pixmap *img);
 /* Converts an image from a floating point pixel format to the corresponding integer one */
@@ -159,6 +171,9 @@ void img_getpixel1i(struct img_pixmap *img, int x, int y, int *pix);
 void img_getpixel1f(struct img_pixmap *img, int x, int y, float *pix);
 void img_getpixel4i(struct img_pixmap *img, int x, int y, int *r, int *g, int *b, int *a);
 void img_getpixel4f(struct img_pixmap *img, int x, int y, float *r, float *g, float *b, float *a);
+
+/* For IMG_FMT_IDX8 pixmaps, returns a pointer to the colormap, null otherwise */
+struct img_colormap *img_colormap(struct img_pixmap *img);
 
 
 /* OpenGL helper functions */

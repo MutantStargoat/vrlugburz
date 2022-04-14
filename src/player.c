@@ -65,14 +65,17 @@ void upd_player_xform(struct player *p)
 	cgm_mpretranslate(p->view_xform, -pos.x, -pos.y, -pos.z);
 }
 
-int cell_infront(struct player *p, int x, int y)
+int cell_rank(struct player *p, int x, int y)
 {
 	int dx, dy;
 
 	dx = x - p->cx;
 	dy = y - p->cy;
-	if(step[p->dir][0] * dx + step[p->dir][1] * dy < 0) {
-		return 0;
-	}
-	return 1;
+
+	return step[p->dir][0] * dx + step[p->dir][1] * dy;
+}
+
+int cell_infront(struct player *p, int x, int y)
+{
+	return cell_rank(p, x, y) < 0 ? 0 : 1;
 }

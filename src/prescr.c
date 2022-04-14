@@ -10,6 +10,7 @@
 #include "rtarg.h"
 #include "sdr.h"
 #include "debug.h"
+#include "imago2.h"
 
 #define REND	REND_PRE
 
@@ -94,6 +95,7 @@ static int start(void)
 	player.cx = -1;
 	player.cy = 0;
 	turn_player(&player, -1);
+	player.phi = cgm_deg_to_rad(-9);
 
 	vp_width = win_width;
 	vp_height = win_height;
@@ -146,6 +148,9 @@ static void update(float dt)
 
 static void draw(void)
 {
+	char fname[64];
+	struct img_pixmap img;
+
 	cgm_midentity(proj_matrix);
 	cgm_mperspective(proj_matrix, cgm_deg_to_rad(60), win_aspect, NEAR_CLIP, 500.0);
 	glMatrixMode(GL_PROJECTION);
@@ -158,6 +163,15 @@ static void draw(void)
 	glLoadMatrixf(view_matrix);
 
 	render_game(0);
+
+	img_init(&img);
+	if(img_set_pixels(&img, win_width, win_height, IMG_FMT_RGB24, 0) != -1) {
+		sprintf(fname, "view_x%02dy%02dd%d.png", player.cx, player.cy, player.dir);
+		glReadPixels(0, 0, win_width, win_height, GL_RGB, GL_UNSIGNED_BYTE, img.pixels);
+		img_vflip(&img);
+		img_save(&img, fname);
+	}
+	img_destroy(&img);
 
 	assert(glGetError() == GL_NO_ERROR);
 	game_swap_buffers();

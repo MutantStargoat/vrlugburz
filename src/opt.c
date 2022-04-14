@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "opt.h"
 #include "optcfg.h"
 
@@ -8,6 +9,7 @@ enum {
 	OPTCFG_VR,
 	OPTCFG_FULLSCREEN,
 	OPTCFG_VSYNC,
+	OPTCFG_SCR,
 	OPTCFG_HELP
 };
 
@@ -16,6 +18,7 @@ static struct optcfg_option optlist[] = {
 	{0, "vr", OPTCFG_VR, "enable VR mode"},
 	{'f', "fullscreen", OPTCFG_FULLSCREEN, "start fullscreen"},
 	{0, "vsync", OPTCFG_VSYNC, "enable vsync"},
+	{0, "scr", OPTCFG_SCR, "start screen"},
 	{'h', "help", OPTCFG_HELP, "print usage and exit"},
 	OPTCFG_OPTIONS_END
 };
@@ -33,7 +36,7 @@ int init_options(int argc, char **argv, const char *cfgfile)
 	opt.width = 1280;
 	opt.height = 800;
 	opt.flags = OPT_VSYNC;
-	opt.start_scr = "game";
+	opt.start_scr = strdup("game");
 
 	argv0 = argv[0];
 
@@ -106,6 +109,15 @@ static int opt_handler(struct optcfg *oc, int optid, void *cls)
 		} else {
 			opt.flags &= ~OPT_VSYNC;
 		}
+		break;
+
+	case OPTCFG_SCR:
+		if(!(valstr = optcfg_next_value(oc))) {
+			fprintf(stderr, "expected name of starting screen after -scr\n");
+			return -1;
+		}
+		free(opt.start_scr);
+		opt.start_scr = strdup(valstr);
 		break;
 
 	case OPTCFG_HELP:

@@ -4,10 +4,16 @@
 
 #ifdef WIN32
 #define GETPROCADDRESS(s)	wglGetProcAddress(s)
+
+static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+
 #else
+
 #include <GL/glx.h>
 
 #define GETPROCADDRESS(s)	glXGetProcAddress((unsigned char*)s)
+
+static PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT;
 #endif
 
 #define LOADPROC(type, func) \
@@ -140,7 +146,24 @@ int init_opengl(void)
 #endif
 	}
 
+#ifdef WIN32
+	LOADPROC(PFNWGLSWAPINTERVALEXTPROC, wglSwapIntervalEXT);
+#else
+	LOADPROC(PFNGLXSWAPINTERVALEXTPROC, glXSwapIntervalEXT);
+#endif
+
 	return 0;
+}
+
+void swap_interval(int interval)
+{
+#ifdef WIN32
+	wglSwapIntervalEXT(interval);
+#else
+	Display *dpy = glXGetCurrentDisplay();
+	Window win = glXGetCurrentDrawable();
+	glXSwapIntervalEXT(dpy, win, interval);
+#endif
 }
 
 int nextpow2(int x)

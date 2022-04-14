@@ -96,6 +96,7 @@ static int start(void)
 	player.lvl = &lvl;
 	player.cx = lvl.px;
 	player.cy = lvl.py;
+	player.phi = cgm_deg_to_rad(-9);
 
 
 	if(vr_active() && goatvr_get_fbo()) {
@@ -302,9 +303,14 @@ static void draw_level(int rpass)
 	for(i=0; i<num_vis; i++) {
 		cell = pcell->vis[i];
 
-		/* during the geometry pass, skip cells behind the player */
-		if(rpass == RPASS_GEOM && !cell_infront(&player, cell->x, cell->y)) {
-			continue;
+		if(rpass == RPASS_GEOM) {
+			int rank = cell_rank(&player, cell->x, cell->y);
+			/* during the geometry pass, skip cells behind the player */
+			if(rank < 0) continue;
+			/* if visdist is valid, also skip cells further than that */
+			if(lvl.visdist > 0 && rank >= lvl.visdist) {
+				continue;
+			}
 		}
 		count++;
 

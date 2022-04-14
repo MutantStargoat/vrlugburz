@@ -20,6 +20,8 @@ int game_init(void)
 		return -1;
 	}
 
+	swap_interval(opt.flags & OPT_VSYNC ? 1 : 0);
+
 	dbg_init();
 
 	glEnable(GL_DEPTH_TEST);

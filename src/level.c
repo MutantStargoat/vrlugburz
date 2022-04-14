@@ -29,7 +29,7 @@ int init_level(struct level *lvl, int xsz, int ysz)
 	lvl->cell_size = DEF_CELL_SIZE;
 	lvl->px = lvl->py = -1;
 
-	lvl->visdist = 4;
+	lvl->visdist = -1;
 	lvl->lightdist = 6;
 
 	/* cell init */

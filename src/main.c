@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 	if(init_options(argc, argv, "game.cfg") == -1) {
 		return 1;
 	}
+	glutReshapeWindow(opt.width, opt.height);
 
 	if(game_init() == -1) {
 		return 1;

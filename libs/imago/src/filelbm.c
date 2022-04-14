@@ -24,7 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #if defined(__WATCOMC__) || defined(WIN32)
 #include <malloc.h>
 #else
+#ifndef __FreeBSD__
 #include <alloca.h>
+#endif
 #endif
 #include "imago2.h"
 #include "ftmodule.h"
@@ -99,7 +101,6 @@ static int write_file(struct img_pixmap *img, struct img_io *io);
 
 static int read_header(struct img_io *io, struct chdr *hdr);
 static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct img_pixmap *img);
-static void convert_rgb(struct img_pixmap *img, unsigned char *pal);
 static int read_bmhd(struct img_io *io, struct bitmap_header *bmhd);
 static int read_crng(struct img_io *io, struct crng *crng);
 static int read_body_ilbm(struct img_io *io, struct bitmap_header *bmhd, struct img_pixmap *img);
@@ -107,8 +108,8 @@ static int read_body_pbm(struct img_io *io, struct bitmap_header *bmhd, struct i
 static int read_compressed_scanline(struct img_io *io, unsigned char *scanline, int width);
 
 #ifdef IMAGO_LITTLE_ENDIAN
-static uint16_t swap16(uint16_t x);
-static uint32_t swap32(uint32_t x);
+static uint16_t img_swap16(uint16_t x);
+static uint32_t img_swap32(uint32_t x);
 #endif
 
 
@@ -179,8 +180,8 @@ static int read_header(struct img_io *io, struct chdr *hdr)
 		return -1;
 	}
 #ifdef IMAGO_LITTLE_ENDIAN
-	hdr->id = swap32(hdr->id);
-	hdr->size = swap32(hdr->size);
+	hdr->id = img_swap32(hdr->id);
+	hdr->size = img_swap32(hdr->size);
 #endif
 	return 0;
 }
@@ -192,7 +193,7 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 	struct bitmap_header bmhd;
 	struct crng crng;
 	/*struct colrange *crnode;*/
-	unsigned char pal[3 * 256];
+	struct img_colormap cmap;
 	long start = io->seek(0, SEEK_CUR, io->uptr);
 
 	memset(img, 0, sizeof *img);
@@ -211,15 +212,15 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 				fprintf(stderr, "libimago: %d planes found, only paletized LBM files supported\n", bmhd.nplanes);
 				return -1;
 			}
-			if(img_set_pixels(img, img->width, img->height, IMG_FMT_RGB24, 0)) {
+			if(img_set_pixels(img, img->width, img->height, IMG_FMT_IDX8, 0)) {
 				return -1;
 			}
 			break;
 
 		case IFF_CMAP:
-			assert(hdr.size / 3 <= 256);
-
-			if(io->read(pal, hdr.size, io->uptr) < hdr.size) {
+			cmap.ncolors = hdr.size / 3;
+			assert(cmap.ncolors <= 256);
+			if(io->read(cmap.color, hdr.size, io->uptr) < hdr.size) {
 				return -1;
 			}
 			break;
@@ -262,7 +263,7 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 				}
 			}
 
-			convert_rgb(img, pal);
+			*img_colormap(img) = cmap;
 
 			res = 0;	/* sucessfully read image */
 			break;
@@ -280,36 +281,19 @@ static int read_ilbm_pbm(struct img_io *io, uint32_t type, uint32_t size, struct
 	return res;
 }
 
-static void convert_rgb(struct img_pixmap *img, unsigned char *pal)
-{
-	int i, npixels = img->width * img->height;
-	unsigned char *sptr, *dptr = img->pixels;
-
-	dptr = (unsigned char*)img->pixels + npixels * 3;
-	sptr = (unsigned char*)img->pixels + npixels;
-
-	for(i=0; i<npixels; i++) {
-		int c = *--sptr;
-		*--dptr = pal[c * 3 + 2];
-		*--dptr = pal[c * 3 + 1];
-		*--dptr = pal[c * 3];
-	}
-}
-
-
 static int read_bmhd(struct img_io *io, struct bitmap_header *bmhd)
 {
 	if(io->read(bmhd, sizeof *bmhd, io->uptr) < 1) {
 		return -1;
 	}
 #ifdef IMAGO_LITTLE_ENDIAN
-	bmhd->width = swap16(bmhd->width);
-	bmhd->height = swap16(bmhd->height);
-	bmhd->xoffs = swap16(bmhd->xoffs);
-	bmhd->yoffs = swap16(bmhd->yoffs);
-	bmhd->colorkey = swap16(bmhd->colorkey);
-	bmhd->pgwidth = swap16(bmhd->pgwidth);
-	bmhd->pgheight = swap16(bmhd->pgheight);
+	bmhd->width = img_swap16(bmhd->width);
+	bmhd->height = img_swap16(bmhd->height);
+	bmhd->xoffs = img_swap16(bmhd->xoffs);
+	bmhd->yoffs = img_swap16(bmhd->yoffs);
+	bmhd->colorkey = img_swap16(bmhd->colorkey);
+	bmhd->pgwidth = img_swap16(bmhd->pgwidth);
+	bmhd->pgheight = img_swap16(bmhd->pgheight);
 #endif
 	return 0;
 }
@@ -320,8 +304,8 @@ static int read_crng(struct img_io *io, struct crng *crng)
 		return -1;
 	}
 #ifdef IMAGO_LITTLE_ENDIAN
-	crng->rate = swap16(crng->rate);
-	crng->flags = swap16(crng->flags);
+	crng->rate = img_swap16(crng->rate);
+	crng->flags = img_swap16(crng->flags);
 #endif
 	return 0;
 }
@@ -351,7 +335,7 @@ static int read_body_ilbm(struct img_io *io, struct bitmap_header *bmhd, struct 
 					return -1;
 				}
 			} else {
-				if((int)io->read(rowbuf, rowsz, io->uptr) < rowsz) {
+				if(io->read(rowbuf, rowsz, io->uptr) < rowsz) {
 					return -1;
 				}
 			}
@@ -400,7 +384,7 @@ static int read_body_pbm(struct img_io *io, struct bitmap_header *bmhd, struct i
 
 	} else {
 		/* uncompressed */
-		if((int)io->read(img->pixels, npixels, io->uptr) < npixels) {
+		if(io->read(img->pixels, npixels, io->uptr) < npixels) {
 			return -1;
 		}
 	}
@@ -420,7 +404,7 @@ static int read_compressed_scanline(struct img_io *io, unsigned char *scanline, 
 
 		if(ctl >= 0) {
 			count = ctl + 1;
-			if((int)io->read(scanline, count, io->uptr) < count) return -1;
+			if(io->read(scanline, count, io->uptr) < count) return -1;
 			scanline += count;
 
 		} else {
@@ -440,12 +424,12 @@ static int read_compressed_scanline(struct img_io *io, unsigned char *scanline, 
 }
 
 #ifdef IMAGO_LITTLE_ENDIAN
-static uint16_t swap16(uint16_t x)
+static uint16_t img_swap16(uint16_t x)
 {
 	return (x << 8) | (x >> 8);
 }
 
-static uint32_t swap32(uint32_t x)
+static uint32_t img_swap32(uint32_t x)
 {
 	return (x << 24) | ((x & 0xff00) << 8) | ((x & 0xff0000) >> 8) | (x >> 24);
 }

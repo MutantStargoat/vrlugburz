@@ -107,6 +107,7 @@ PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
 
 int init_opengl(void);
 
+void swap_interval(int interval);
 int nextpow2(int x);
 
 #endif	/* OPENGL_H_ */
