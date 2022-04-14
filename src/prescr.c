@@ -114,21 +114,21 @@ static void stop(void)
 
 static int nextcell(void)
 {
-	int i, j;
+	struct cell *cptr, *cend = lvl.cells + lvl.height * lvl.width;
 
 	if(++player.cx >= lvl.width) {
 		player.cx = 0;
 		player.cy++;
 	}
 
-	for(i=player.cy; i<lvl.height; i++) {
-		for(j=player.cx; j<lvl.width; j++) {
-			if(get_cell_type(&lvl, j, i) == CELL_WALK) {
-				player.cx = j;
-				player.cy = i;
-				return 0;
-			}
+	cptr = lvl.cells + player.cy * lvl.width + player.cx;
+	while(cptr != cend) {
+		if(cptr->type == CELL_WALK) {
+			player.cx = cptr->x;
+			player.cy = cptr->y;
+			return 0;
 		}
+		cptr++;
 	}
 	return -1;
 }
